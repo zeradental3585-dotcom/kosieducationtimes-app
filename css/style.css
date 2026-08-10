@@ -170,3 +170,37 @@ footer.site nav a { margin: 0 10px; color: var(--muted); }
 @media (min-width: 700px) {
   .related ul { grid-template-columns: 1fr 1fr; }
 }
+
+/* --- key facts / data tables --- */
+table.facts {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 20px 0;
+  font-size: 15px;
+  display: block;
+  overflow-x: auto;
+}
+table.facts th, table.facts td {
+  border: 1px solid var(--border);
+  padding: 10px 12px;
+  text-align: left;
+  vertical-align: top;
+}
+table.facts th {
+  background: var(--bg);
+  font-weight: 700;
+  color: var(--ink);
+  white-space: nowrap;
+}
+table.facts tbody tr:nth-child(even) td { background: #fffaf5; }
+
+/* --- inline caveat note --- */
+p.note {
+  font-size: 14px;
+  color: var(--muted);
+  background: #f9fafb;
+  border-left: 3px solid var(--border);
+  padding: 12px 14px;
+  margin: 18px 0;
+  border-radius: 0 6px 6px 0;
+}
