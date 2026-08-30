@@ -1,0 +1,19 @@
+{
+  "redirects": [
+    {
+      "source": "/articles/bihar-police-constable-vacancy-2026.html",
+      "destination": "/naukri/bihar-police-constable-csbc-guide.html",
+      "permanent": true
+    },
+    {
+      "source": "/articles/bpsc-tre-4-teacher-recruitment-2026.html",
+      "destination": "/naukri/bpsc-tre-4-teacher-recruitment.html",
+      "permanent": true
+    },
+    {
+      "source": "/articles/kosi-division-sarkari-naukri-guide.html",
+      "destination": "/naukri/kosi-division-sarkari-naukri-guide.html",
+      "permanent": true
+    }
+  ]
+}
