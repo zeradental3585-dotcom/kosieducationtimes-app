@@ -206,3 +206,15 @@ p.note {
 }
 
 h4 { font-size: 16px; margin: 20px 0 8px; color: var(--ink); }
+
+/* --- homepage sections --- */
+.home-section { margin: 0 0 44px; }
+.home-section h2 { margin: 0 0 4px; font-size: 22px; }
+.home-section .section-blurb { margin: 0 0 16px; color: var(--muted); font-size: 15px; }
+.home-section .section-more {
+  display: inline-block;
+  margin: 0 0 16px;
+  font-size: 14px;
+  font-weight: 600;
+}
+.home-section .article-grid { margin: 0; }
