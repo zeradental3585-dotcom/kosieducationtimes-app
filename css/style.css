@@ -218,3 +218,30 @@ h4 { font-size: 16px; margin: 20px 0 8px; color: var(--ink); }
   font-weight: 600;
 }
 .home-section .article-grid { margin: 0; }
+
+/* --- mock test --- */
+.mock-config { background:#fffbeb; border:1px solid #fde68a; border-radius:8px; padding:14px 16px; margin:20px 0; font-size:14px; }
+.mock-meta { display:flex; flex-wrap:wrap; gap:10px; margin:18px 0; }
+.mock-meta span { background:var(--bg); border:1px solid var(--border); border-radius:999px; padding:6px 14px; font-size:13px; font-weight:600; }
+#authbar { display:flex; flex-wrap:wrap; align-items:center; gap:12px; margin:18px 0; padding:14px 16px; border:1px solid var(--border); border-radius:8px; }
+#authbar .who { font-size:14px; color:var(--muted); }
+.q { border:1px solid var(--border); border-radius:10px; padding:18px; margin:0 0 16px; }
+.q .qnum { font-size:12px; font-weight:700; letter-spacing:.04em; text-transform:uppercase; color:var(--saffron); }
+.q .qtopic { font-size:12px; color:var(--muted); float:right; }
+.q .qtext { font-size:16px; font-weight:600; margin:8px 0 14px; line-height:1.5; }
+.q label { display:block; padding:11px 14px; margin:0 0 8px; border:1px solid var(--border); border-radius:8px; cursor:pointer; font-size:15px; line-height:1.45; }
+.q label:hover { border-color:var(--saffron); }
+.q input[type=radio] { margin-right:10px; }
+.q label.correct { border-color:var(--ok); background:#ecfdf5; }
+.q label.wrong { border-color:#dc2626; background:#fef2f2; }
+.q .explain { margin:12px 0 0; padding:12px 14px; background:#f9fafb; border-left:3px solid var(--saffron); border-radius:0 6px 6px 0; font-size:14.5px; }
+.q .explain strong { color:var(--ink); }
+.btn { display:inline-block; background:var(--saffron); color:#fff; border:0; border-radius:8px; padding:13px 26px; font-size:16px; font-weight:700; cursor:pointer; font-family:inherit; }
+.btn:hover { background:var(--saffron-dark); }
+.btn.secondary { background:#fff; color:var(--ink); border:1px solid var(--border); }
+.scorecard { border:2px solid var(--saffron); border-radius:12px; padding:22px; margin:0 0 22px; background:var(--bg); }
+.scorecard h2 { margin:0 0 6px; }
+.scorecard .big { font-size:40px; font-weight:800; line-height:1.1; }
+.scorecard .sub { color:var(--muted); font-size:15px; margin:4px 0 0; }
+#timer { font-variant-numeric:tabular-nums; font-weight:700; }
+.hidden { display:none; }
