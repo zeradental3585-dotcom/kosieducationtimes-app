@@ -27,11 +27,67 @@ header.site {
   border-bottom: 1px solid var(--border);
   padding: 16px 0;
 }
-header.site .wrap { display: flex; align-items: center; justify-content: space-between; }
-.logo { font-size: 21px; font-weight: 700; color: var(--ink); }
+header.site .wrap { display: flex; align-items: center; justify-content: space-between; gap: 16px; }
+.logo { font-size: 21px; font-weight: 700; color: var(--ink); white-space: nowrap; }
 .logo span { color: var(--saffron); }
-nav.site a { margin-left: 20px; color: var(--muted); font-weight: 500; font-size: 15px; }
+nav.site { display: flex; align-items: center; }
+nav.site a { margin-left: 20px; color: var(--muted); font-weight: 500; font-size: 15px; white-space: nowrap; }
 nav.site a:hover { color: var(--ink); }
+
+/* Mobile header.
+   The five links used to wrap into a ragged second line next to the logo.
+   On a phone the logo now takes its own line and the nav becomes a single
+   row underneath. If the row is wider than the screen it scrolls sideways
+   rather than wrapping, so the order of the links never changes and
+   nothing lands half off the edge.
+   Most of this audience is on a small cheap Android, so the links also get
+   real tap targets instead of 15px text with no padding. */
+@media (max-width: 700px) {
+  header.site { padding: 12px 0 0; }
+  header.site .wrap {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0;
+  }
+  .logo { font-size: 20px; padding-bottom: 10px; }
+  nav.site {
+    display: flex;
+    gap: 22px;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+    border-top: 1px solid var(--border);
+    margin: 0 -20px;
+    padding: 0 20px;
+  }
+  nav.site::-webkit-scrollbar { display: none; }
+  nav.site a {
+    margin-left: 0;
+    padding: 13px 0;
+    font-size: 15px;
+    line-height: 1.2;
+  }
+  /* The link for the section you are on should be obvious. */
+  nav.site a[aria-current="page"] { color: var(--ink); box-shadow: inset 0 -2px 0 var(--saffron); }
+
+  /* A timed test on a phone means scrolling through 25 questions, and the
+     clock used to scroll away with everything else. It now stays put. */
+  .timerbar {
+    position: sticky;
+    top: 0;
+    z-index: 20;
+    margin: 0 -20px 16px;
+    padding: 11px 20px;
+    background: #fff;
+    border-bottom: 1px solid var(--border);
+    font-size: 15px;
+  }
+  .timerbar #timer { font-variant-numeric: tabular-nums; font-weight: 700; }
+
+  /* Submit is the one button that should be unmissable and hard to miss
+     with a thumb. */
+  #submitBtn { display: block; width: 100%; }
+}
 
 main { min-height: 60vh; padding: 40px 0 60px; }
 
