@@ -173,7 +173,7 @@
    saved on this device only, with no sign-in.
 ------------------------------------------------------------------ */
 var GOOGLE_CLIENT_ID = "";   // e.g. "1234-abcd.apps.googleusercontent.com"
-var APPS_SCRIPT_URL  = "";   // e.g. "https://script.google.com/macros/s/AKfy.../exec"
+var APPS_SCRIPT_URL  = "https://script.google.com/macros/s/AKfycbwklQzs9NKA78MbW3Qv-3iamF-l8Awg5fXVxyzbo6YuuQ-oMnv47rpC2bue-Gi80O7VZw/exec";   // e.g. "https://script.google.com/macros/s/AKfy.../exec"
 
 var TEST_ID = "bihar-police-constable-1";
 var DURATION_SEC = 30 * 60;
@@ -181,7 +181,7 @@ var DURATION_SEC = 30 * 60;
 var QUESTIONS = [
   {
     "topic": "हिंदी",
-    "q": "'विद्यालय' शब्द में कौन सी संधि है?",
+    "q": "‘विद्यालय’ शब्द में कौन सी संधि है?",
     "options": [
       "दीर्घ संधि",
       "गुण संधि",
@@ -189,11 +189,11 @@ var QUESTIONS = [
       "यण संधि"
     ],
     "answer": 0,
-    "explain": "विद्या + आलय = विद्यालय। यहाँ 'आ' और 'आ' मिलकर दीर्घ 'आ' बने हैं, इसलिए यह दीर्घ संधि है।"
+    "explain": "विद्या + आलय = विद्यालय। यहाँ ‘आ’ और ‘आ’ मिलकर दीर्घ ‘आ’ बने हैं, इसलिए यह दीर्घ संधि है।"
   },
   {
     "topic": "हिंदी",
-    "q": "'नयन' का पर्यायवाची शब्द कौन सा है?",
+    "q": "‘नयन’ का पर्यायवाची शब्द कौन सा है?",
     "options": [
       "श्रवण",
       "नेत्र",
@@ -205,7 +205,7 @@ var QUESTIONS = [
   },
   {
     "topic": "हिंदी",
-    "q": "'आँखों का तारा' मुहावरे का अर्थ क्या है?",
+    "q": "‘आँखों का तारा’ मुहावरे का अर्थ क्या है?",
     "options": [
       "बहुत प्रिय होना",
       "अत्यंत क्रोधित होना",
@@ -213,11 +213,11 @@ var QUESTIONS = [
       "बहुत दूर होना"
     ],
     "answer": 0,
-    "explain": "'आँखों का तारा' का अर्थ है बहुत प्रिय या अत्यंत स्नेह का पात्र होना।"
+    "explain": "‘आँखों का तारा’ का अर्थ है बहुत प्रिय या अत्यंत स्नेह का पात्र होना।"
   },
   {
     "topic": "हिंदी",
-    "q": "'रात' शब्द का तत्सम रूप क्या है?",
+    "q": "‘रात’ शब्द का तत्सम रूप क्या है?",
     "options": [
       "रजनी",
       "रात्रि",
@@ -225,7 +225,7 @@ var QUESTIONS = [
       "यामिनी"
     ],
     "answer": 1,
-    "explain": "'रात' तद्भव शब्द है और इसका तत्सम रूप 'रात्रि' है। रजनी, निशा और यामिनी पर्यायवाची तो हैं, पर 'रात' के सीधे तत्सम रूप नहीं।"
+    "explain": "‘रात’ तद्भव शब्द है और इसका तत्सम रूप ‘रात्रि’ है। रजनी, निशा और यामिनी पर्यायवाची तो हैं, पर ‘रात’ के सीधे तत्सम रूप नहीं।"
   },
   {
     "topic": "English",
@@ -249,7 +249,7 @@ var QUESTIONS = [
       "for"
     ],
     "answer": 2,
-    "explain": "किसी विषय या कौशल में निपुण होने के लिए 'good at' का प्रयोग होता है — good at mathematics, good at singing।"
+    "explain": "किसी विषय या कौशल में निपुण होने के लिए ‘good at’ का प्रयोग होता है — good at mathematics, good at singing।"
   },
   {
     "topic": "English",
@@ -261,7 +261,7 @@ var QUESTIONS = [
       "He gone to school every day."
     ],
     "answer": 1,
-    "explain": "Simple present में तीसरे पुरुष एकवचन (he, she, it) के साथ क्रिया में 's' या 'es' जुड़ता है — इसलिए 'He goes'।"
+    "explain": "Simple present में तीसरे पुरुष एकवचन (he, she, it) के साथ क्रिया में ‘s’ या ‘es’ जुड़ता है — इसलिए ‘He goes’।"
   },
   {
     "topic": "English",
@@ -369,7 +369,7 @@ var QUESTIONS = [
       "पीयूष ग्रंथि"
     ],
     "answer": 2,
-    "explain": "यकृत (liver) मानव शरीर की सबसे बड़ी ग्रंथि है। पीयूष ग्रंथि सबसे छोटी होती है, पर उसे 'मास्टर ग्रंथि' कहा जाता है।"
+    "explain": "यकृत (liver) मानव शरीर की सबसे बड़ी ग्रंथि है। पीयूष ग्रंथि सबसे छोटी होती है, पर उसे ‘मास्टर ग्रंथि’ कहा जाता है।"
   },
   {
     "topic": "विज्ञान",
@@ -397,7 +397,7 @@ var QUESTIONS = [
   },
   {
     "topic": "सामाजिक विज्ञान",
-    "q": "किस नदी को 'बिहार का शोक' कहा जाता है?",
+    "q": "किस नदी को ‘बिहार का शोक’ कहा जाता है?",
     "options": [
       "गंडक",
       "कोसी",
@@ -405,7 +405,7 @@ var QUESTIONS = [
       "बागमती"
     ],
     "answer": 1,
-    "explain": "कोसी नदी को 'बिहार का शोक' कहा जाता है, क्योंकि यह बार-बार अपनी धारा बदलती है और भीषण बाढ़ लाती है। कोसी प्रमंडल का नाम भी इसी नदी पर है।"
+    "explain": "कोसी नदी को ‘बिहार का शोक’ कहा जाता है, क्योंकि यह बार-बार अपनी धारा बदलती है और भीषण बाढ़ लाती है। कोसी प्रमंडल का नाम भी इसी नदी पर है।"
   },
   {
     "topic": "सामाजिक विज्ञान",
@@ -637,9 +637,28 @@ function initAuth(){
   document.head.appendChild(s);
 }
 
+/* Sheet is the source of truth for questions; the bundled bank above is the
+   fallback so the test still works if the backend is unreachable. */
+function loadQuestionsFromSheet(){
+  if (!APPS_SCRIPT_URL) return;
+  fetch(APPS_SCRIPT_URL + "?test=" + encodeURIComponent(TEST_ID))
+    .then(function(r){ return r.json(); })
+    .then(function(j){
+      if (j && j.ok && j.questions && j.questions.length){
+        var clean = j.questions.filter(function(q){
+          return q && q.q && q.options && q.options.length === 4 &&
+                 q.answer >= 0 && q.answer < 4;
+        });
+        if (clean.length && !started) QUESTIONS = clean;
+      }
+    })
+    .catch(function(){ /* keep the bundled bank */ });
+}
+
 $("startBtn").addEventListener("click", startTest);
 $("submitBtn").addEventListener("click", function(){ grade(false); });
 initAuth();
+loadQuestionsFromSheet();
 renderHistory();
 </script>
 
