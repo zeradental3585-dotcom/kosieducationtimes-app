@@ -121,8 +121,8 @@
     </div>
 
     <div id="authbar">
-      <div class="who" id="whoami">प्रगति इस डिवाइस में सुरक्षित रहती है। लॉगिन करने पर यह आपके खाते से जुड़ जाएगी और किसी भी फोन पर दिखेगी।</div>
-      <div id="gbtn"></div>
+      <div class="who" id="whoami"></div>
+      <div id="keybox"></div>
     </div>
 
     <div id="intro">
@@ -168,12 +168,13 @@
 
 <script>
 /* ------------------------------------------------------------------
-   CONFIG — fill these two in after deploying the Apps Script.
-   Leave them empty and the test still works fully; progress is then
-   saved on this device only, with no sign-in.
+   CONFIG
+   APPS_SCRIPT_URL powers cross-device progress. It is already set.
+   GOOGLE_CLIENT_ID is optional - leave it empty and the site uses the
+   sync-code system instead, which needs no account and no setup.
 ------------------------------------------------------------------ */
-var GOOGLE_CLIENT_ID = "";   // e.g. "1234-abcd.apps.googleusercontent.com"
-var APPS_SCRIPT_URL  = "https://script.google.com/macros/s/AKfycbwklQzs9NKA78MbW3Qv-3iamF-l8Awg5fXVxyzbo6YuuQ-oMnv47rpC2bue-Gi80O7VZw/exec";   // e.g. "https://script.google.com/macros/s/AKfy.../exec"
+var APPS_SCRIPT_URL  = "https://script.google.com/macros/s/AKfycbwklQzs9NKA78MbW3Qv-3iamF-l8Awg5fXVxyzbo6YuuQ-oMnv47rpC2bue-Gi80O7VZw/exec";
+var GOOGLE_CLIENT_ID = "";
 
 var TEST_ID = "bihar-police-constable-1";
 var DURATION_SEC = 30 * 60;
@@ -481,14 +482,46 @@ var QUESTIONS = [
   }
 ];
 
-var user = null, remaining = DURATION_SEC, ticker = null, started = false;
+var remaining = DURATION_SEC, ticker = null, started = false;
 
 function $(id){ return document.getElementById(id); }
 function esc(s){ return String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;"); }
 
+/* ---------- sync key: no account, no password ---------- */
+var ALPHABET = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789"; // no I O 0 1
+function newKey(){
+  var a = new Uint8Array(8);
+  (window.crypto || window.msCrypto).getRandomValues(a);
+  var s = "";
+  for (var i = 0; i < 8; i++) s += ALPHABET[a[i] % ALPHABET.length];
+  return "KET-" + s.slice(0,4) + "-" + s.slice(4);
+}
+function getKey(){ try { return localStorage.getItem("ket_key"); } catch(e){ return null; } }
+function setKey(k){ try { localStorage.setItem("ket_key", k); } catch(e){} }
+function ensureKey(){ var k = getKey(); if (!k){ k = newKey(); setKey(k); } return k; }
+
+function renderKeyBox(){
+  var k = getKey();
+  if (k){
+    $("whoami").innerHTML = "आपका सिंक कोड: <strong id='mykey'>" + esc(k) + "</strong>";
+    $("keybox").innerHTML =
+      '<button class="btn secondary" id="copyKey" type="button">कोड कॉपी करें</button> ' +
+      '<a class="btn secondary" href="dashboard.html">मेरी प्रगति देखें</a>';
+    $("copyKey").addEventListener("click", function(){
+      var t = $("mykey").textContent;
+      if (navigator.clipboard) navigator.clipboard.writeText(t);
+      this.textContent = "कॉपी हो गया";
+      var b = this; setTimeout(function(){ b.textContent = "कोड कॉपी करें"; }, 2000);
+    });
+  } else {
+    $("whoami").textContent = "टेस्ट देते ही आपको एक सिंक कोड मिलेगा। उसे लिख लीजिए — किसी भी फोन पर वही कोड डालकर अपनी पूरी प्रगति देख सकते हैं।";
+    $("keybox").innerHTML = '<a class="btn secondary" href="dashboard.html">कोड है? प्रगति देखें</a>';
+  }
+}
+
 /* ---------- render ---------- */
 function renderQuiz(){
-  var f = $("quizForm"), html = "";
+  var html = "";
   QUESTIONS.forEach(function(q, i){
     html += '<div class="q" id="q'+i+'">';
     html += '<span class="qnum">प्रश्न '+(i+1)+'</span><span class="qtopic">'+esc(q.topic)+'</span>';
@@ -498,7 +531,7 @@ function renderQuiz(){
     });
     html += '</div>';
   });
-  f.innerHTML = html;
+  $("quizForm").innerHTML = html;
 }
 
 function fmt(s){
@@ -532,9 +565,9 @@ function grade(auto){
     byTopic[q.topic].total++;
 
     var correctLabel = $("q"+i+"o"+q.answer);
-    if (chosen === q.answer){ score++; byTopic[q.topic].right++; correctLabel.classList.add("correct"); }
+    correctLabel.classList.add("correct");
+    if (chosen === q.answer){ score++; byTopic[q.topic].right++; }
     else {
-      correctLabel.classList.add("correct");
       if (chosen !== -1) $("q"+i+"o"+chosen).classList.add("wrong");
       wrongList.push((i+1)+". "+q.topic);
     }
@@ -561,10 +594,15 @@ function grade(auto){
     ? "<p>सबसे कमजोर विषय: <strong>"+esc(weak[0].t)+"</strong> ("+weak[0].pct+"%)। अगली तैयारी वहीं से शुरू कीजिए।</p>"
     : "<p>सभी विषयों में पूरे अंक। अगला टेस्ट कठिनाई बढ़ाकर दीजिए।</p>";
 
+  var key = ensureKey();
+
   $("resultWrap").innerHTML =
     '<div class="scorecard"><h2>आपका स्कोर</h2>'+
     '<div class="big">'+score+' / '+QUESTIONS.length+'</div>'+
     '<p class="sub">'+pct+'% &middot; '+attempted+' प्रश्न हल किए'+(auto ? ' &middot; समय समाप्त' : '')+'</p></div>'+
+    '<div class="mock-config"><strong>आपका सिंक कोड: '+esc(key)+'</strong><br>'+
+    'इसे लिख लीजिए। किसी भी दूसरे फोन पर यही कोड डालकर आप अपनी पूरी प्रगति देख सकते हैं — न कोई अकाउंट चाहिए, न पासवर्ड। '+
+    '<a href="dashboard.html">मेरी प्रगति देखें →</a></div>'+
     '<h2>विषयवार प्रदर्शन</h2>'+
     '<table class="facts"><thead><tr><th>विषय</th><th>सही</th><th>प्रतिशत</th></tr></thead><tbody>'+rows+'</tbody></table>'+
     advice+
@@ -575,11 +613,13 @@ function grade(auto){
   saveAttempt({
     test: TEST_ID, date: new Date().toISOString(),
     score: score, total: QUESTIONS.length, pct: pct,
-    wrong: wrongList.join(" | ")
+    wrong: wrongList.join(" | "),
+    topics: JSON.stringify(weak.map(function(w){ return [w.t, w.right, w.total]; }))
   });
+  renderKeyBox();
 }
 
-/* ---------- storage: localStorage always, Sheets when signed in ---------- */
+/* ---------- storage ---------- */
 function localAttempts(){
   try { return JSON.parse(localStorage.getItem("ket_attempts") || "[]"); }
   catch(e){ return []; }
@@ -587,15 +627,16 @@ function localAttempts(){
 function saveAttempt(a){
   try {
     var all = localAttempts(); all.push(a);
-    localStorage.setItem("ket_attempts", JSON.stringify(all.slice(-50)));
-  } catch(e){ /* storage unavailable — not fatal */ }
+    localStorage.setItem("ket_attempts", JSON.stringify(all.slice(-100)));
+  } catch(e){}
 
-  if (user && APPS_SCRIPT_URL){
+  var key = getKey();
+  if (key && APPS_SCRIPT_URL){
     fetch(APPS_SCRIPT_URL, {
       method: "POST",
       headers: { "Content-Type": "text/plain;charset=utf-8" },
-      body: JSON.stringify({ action:"saveAttempt", credential:user.credential, attempt:a })
-    }).catch(function(){ /* offline — localStorage copy still kept */ });
+      body: JSON.stringify({ action:"saveAttempt", key:key, attempt:a })
+    }).catch(function(){ /* offline - the local copy still stands */ });
   }
   renderHistory();
 }
@@ -608,37 +649,12 @@ function renderHistory(){
     return "<tr><td>"+d.toLocaleDateString("hi-IN")+"</td><td>"+a.score+" / "+a.total+"</td><td>"+a.pct+"%</td></tr>";
   }).join("");
   $("historyWrap").innerHTML =
-    "<h2>आपके पिछले प्रयास</h2>"+
+    "<h2>इस टेस्ट के आपके पिछले प्रयास</h2>"+
     '<table class="facts"><thead><tr><th>तारीख</th><th>स्कोर</th><th>प्रतिशत</th></tr></thead><tbody>'+rows+"</tbody></table>"+
-    (user ? "" : '<p class="note">यह सूची केवल इसी डिवाइस में सुरक्षित है। लॉगिन करने पर यह आपके खाते से जुड़ जाएगी।</p>');
+    '<p><a href="dashboard.html">सभी टेस्ट की पूरी प्रगति देखें →</a></p>';
 }
 
-/* ---------- Google Sign-In (optional) ---------- */
-function onCredential(resp){
-  user = { credential: resp.credential };
-  var payload = {};
-  try { payload = JSON.parse(atob(resp.credential.split(".")[1])); } catch(e){}
-  $("whoami").textContent = (payload.email || "लॉगिन") + " — प्रगति अब आपके खाते से जुड़ी है।";
-  renderHistory();
-}
-
-function initAuth(){
-  if (!GOOGLE_CLIENT_ID){
-    $("gbtn").innerHTML = '<span class="who">(लॉगिन अभी सक्रिय नहीं है)</span>';
-    return;
-  }
-  var s = document.createElement("script");
-  s.src = "https://accounts.google.com/gsi/client";
-  s.async = true; s.defer = true;
-  s.onload = function(){
-    google.accounts.id.initialize({ client_id: GOOGLE_CLIENT_ID, callback: onCredential });
-    google.accounts.id.renderButton($("gbtn"), { theme:"outline", size:"large", text:"signin_with" });
-  };
-  document.head.appendChild(s);
-}
-
-/* Sheet is the source of truth for questions; the bundled bank above is the
-   fallback so the test still works if the backend is unreachable. */
+/* ---------- questions come from the Sheet; bundled bank is the fallback ---------- */
 function loadQuestionsFromSheet(){
   if (!APPS_SCRIPT_URL) return;
   fetch(APPS_SCRIPT_URL + "?test=" + encodeURIComponent(TEST_ID))
@@ -652,13 +668,13 @@ function loadQuestionsFromSheet(){
         if (clean.length && !started) QUESTIONS = clean;
       }
     })
-    .catch(function(){ /* keep the bundled bank */ });
+    .catch(function(){});
 }
 
 $("startBtn").addEventListener("click", startTest);
 $("submitBtn").addEventListener("click", function(){ grade(false); });
-initAuth();
 loadQuestionsFromSheet();
+renderKeyBox();
 renderHistory();
 </script>
 
