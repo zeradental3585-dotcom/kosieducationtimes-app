@@ -299,18 +299,61 @@ function draw(list){
     '<p><a href="bihar-police-constable-test.html">एक और टेस्ट दीजिए →</a></p>';
 }
 
+/* The server round trip measured just under three seconds on a good
+   connection, and this audience is not on a good connection. Three
+   states have to be told apart, because collapsing them tells students
+   things that are not true:
+     - fetched something          -> show it
+     - fetched nothing, code valid -> genuinely no attempts, or a mistyped code
+     - could not reach the server  -> say so, do NOT report "no attempts"
+   The last one is the trap. On a phone that has never taken a test there
+   is no local copy to fall back on, so a failed request used to render
+   "no attempts recorded yet" to a student holding a perfectly good code. */
 function load(){
   var key = getKey();
   var local = localAttempts();
   if (!key || !APPS_SCRIPT_URL){ draw(local); return; }
-  $("content").innerHTML = '<p class="note">आपकी प्रगति लाई जा रही है…</p>';
+
+  $("content").innerHTML = '<p class="note">आपकी प्रगति लाई जा रही है… इसमें कुछ सेकंड लग सकते हैं।</p>';
+
+  var done = false;
+  var slow = setTimeout(function(){
+    if (!done) $("content").innerHTML =
+      '<p class="note">अभी भी लाया जा रहा है… धीमे नेटवर्क पर थोड़ा समय लगता है, पेज बंद मत कीजिए।</p>';
+  }, 4000);
+
+  function failed(){
+    clearTimeout(slow); done = true;
+    if (local.length){
+      draw(local);
+      var n = document.createElement('p');
+      n.className = 'note';
+      n.textContent = 'यह इसी फोन में सेव की गई कॉपी है। सर्वर से ताजा रिकॉर्ड अभी नहीं आ सका।';
+      $("content").insertBefore(n, $("content").firstChild);
+      return;
+    }
+    $("content").innerHTML =
+      '<p class="note">आपकी प्रगति अभी लाई नहीं जा सकी — नेटवर्क या सर्वर की दिक्कत लगती है। ' +
+      'आपका रिकॉर्ड सुरक्षित है, खोया नहीं है।</p>' +
+      '<p><button class="btn secondary" id="retry" type="button">दोबारा कोशिश करें</button></p>';
+    var b = $("retry"); if (b) b.addEventListener("click", load);
+  }
+
   fetch(APPS_SCRIPT_URL + "?action=history&key=" + encodeURIComponent(key))
     .then(function(r){ return r.json(); })
     .then(function(j){
-      if (j && j.ok && j.attempts && j.attempts.length) draw(j.attempts);
-      else draw(local);
+      clearTimeout(slow); done = true;
+      if (j && j.ok && j.attempts && j.attempts.length){ draw(j.attempts); return; }
+      if (j && j.ok){                       // server answered: this code has nothing
+        if (local.length){ draw(local); return; }
+        $("content").innerHTML =
+          '<p class="note">इस कोड पर अभी कोई प्रयास दर्ज नहीं है। कोड एक बार दोबारा जाँच लीजिए — ' +
+          'या <a href="bihar-police-constable-test.html">पहला टेस्ट दीजिए →</a></p>';
+        return;
+      }
+      failed();                             // ok:false, e.g. a malformed key
     })
-    .catch(function(){ draw(local); });
+    .catch(failed);
 }
 
 renderBar();
