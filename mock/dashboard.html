@@ -99,17 +99,24 @@
 
     <div id="authbar">
       <div class="who" id="whoami"></div>
+      <div id="gsi"></div>
       <div id="keybox"></div>
     </div>
 
     <div id="content"></div>
 
     <div class="mock-config">
-      <strong>सिंक कोड कैसे काम करता है</strong><br>
-      न अकाउंट बनाना है, न पासवर्ड याद रखना है। पहला टेस्ट देते ही आपको एक छोटा कोड मिलता है, जैसे <code>KET-7F3K-92QX</code>।
-      उसे लिख लीजिए। किसी भी दूसरे फोन पर वही कोड डालिए और आपकी पूरी प्रगति वहाँ दिख जाएगी।
+      <strong>प्रगति सेव करने के दो तरीके</strong><br>
+      <strong>1. Google से साइन इन —</strong> एक क्लिक। इसके बाद आप जिस भी फोन पर उसी अकाउंट से साइन इन करेंगे,
+      आपकी पूरी प्रगति वहाँ अपने आप दिख जाएगी। कुछ याद रखने की जरूरत नहीं।
       <br><br>
-      कोड सिर्फ आपके स्कोर से जुड़ा है — इसमें आपका नाम, नंबर या ईमेल कुछ भी नहीं होता।
+      <strong>2. सिंक कोड —</strong> बिना किसी अकाउंट के। पहला टेस्ट देते ही आपको एक छोटा कोड मिलता है, जैसे
+      <code>KET-7F3K-92QX</code>। उसे लिख लीजिए और किसी भी दूसरे फोन पर वही कोड डाल दीजिए।
+      <br><br>
+      दोनों तरीके एक ही रिकॉर्ड तक ले जाते हैं। साइन इन करने पर भी हम आपका ईमेल पता स्कोर के साथ सेव नहीं करते —
+      Google से आया पहचान-चिह्न सिर्फ आपके कोड तक पहुँचने के लिए इस्तेमाल होता है।
+      पहले बिना साइन इन किए दिए गए टेस्ट भी साइन इन करने पर उसी रिकॉर्ड में जुड़ जाते हैं।
+      पूरा विवरण <a href="../privacy.html">प्राइवेसी पॉलिसी</a> में है।
     </div>
 
     <p class="note">कुछ गड़बड़ लगे? <a href="../contact.html">हमें बताइए।</a></p>
@@ -118,36 +125,51 @@
 
 <footer class="site">
   <div class="wrap">
-    <nav><a href="../about.html">About</a> &middot; <a href="../contact.html">Contact</a> &middot; <a href="../privacy.html">Privacy Policy</a></nav>
+    <nav><a href="../about.html">About</a> &middot; <a href="../contact.html">Contact</a> &middot; <a href="../privacy.html">Privacy Policy</a> &middot; <a href="../terms.html">Terms</a></nav>
     <p>&copy; 2026 KosiEducationTimes, a property of <a href="https://zeratech.io/" target="_blank" rel="noopener noreferrer">Zera Technologies</a>. All rights reserved.</p>
     <p class="credit">Designed and developed by <a href="https://zeratech.io/" target="_blank" rel="noopener noreferrer">Zera Technologies</a></p>
   </div>
 </footer>
 
+<script src="../js/auth.js"></script>
 <script>
-var APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwklQzs9NKA78MbW3Qv-3iamF-l8Awg5fXVxyzbo6YuuQ-oMnv47rpC2bue-Gi80O7VZw/exec";
+var APPS_SCRIPT_URL = KET.ENDPOINT;
 
 function $(id){ return document.getElementById(id); }
 function esc(s){ return String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;"); }
-function getKey(){ try { return localStorage.getItem("ket_key"); } catch(e){ return null; } }
-function setKey(k){ try { localStorage.setItem("ket_key", k); } catch(e){} }
+function getKey(){ return KET.getKey(); }
 
 function renderBar(){
-  var k = getKey();
+  var k = KET.getKey(), p = KET.profile();
+
+  if (p && k){
+    $("whoami").innerHTML =
+      (p.picture ? '<img src="'+esc(p.picture)+'" alt="" width="28" height="28" style="border-radius:50%;vertical-align:-8px;margin-left:6px"> ' : "") +
+      esc(p.name || "आप") + " — साइन इन हैं";
+    $("gsi").innerHTML = "";
+    $("keybox").innerHTML = '<button class="btn secondary" id="signOut" type="button">साइन आउट</button>';
+    $("signOut").addEventListener("click", function(){ KET.signOut(); renderBar(); load(); });
+    return;
+  }
+
   $("whoami").innerHTML = k
     ? "आपका सिंक कोड: <strong>" + esc(k) + "</strong>"
-    : "अगर आपके पास सिंक कोड है तो यहाँ डालिए:";
+    : (KET.enabled()
+        ? "Google से साइन इन कीजिए, या अपना सिंक कोड यहाँ डालिए:"
+        : "अगर आपके पास सिंक कोड है तो यहाँ डालिए:");
   $("keybox").innerHTML =
     '<input id="keyIn" placeholder="KET-XXXX-XXXX" style="padding:10px 12px;border:1px solid var(--border);border-radius:8px;font-size:15px;width:190px;text-transform:uppercase"> ' +
     '<button class="btn secondary" id="useKey" type="button">प्रगति देखें</button>';
   $("useKey").addEventListener("click", function(){
     var v = $("keyIn").value.trim().toUpperCase();
-    if (!/^KET-[A-Z0-9]{4}-[A-Z0-9]{4}$/.test(v)){
+    if (!KET.isValidCode(v)){
       $("content").innerHTML = '<p class="note">कोड का प्रारूप गलत है। यह ऐसा दिखता है: KET-7F3K-92QX</p>';
       return;
     }
-    setKey(v); renderBar(); load();
+    KET.setKey(v); renderBar(); load();
   });
+
+  KET.mountSignIn($("gsi"), function(){ renderBar(); load(); });
 }
 
 function localAttempts(){

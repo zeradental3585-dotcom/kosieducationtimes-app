@@ -5,9 +5,16 @@
  *   questions  A:question B:option1 C:option2 D:option3 E:option4
  *              F:answer(1-4) G:explain H:topic I:difficulty J:test_id
  *   attempts   A:timestamp B:user C:test D:score E:total F:pct G:wrong H:topics
+ *   users      A:google_id B:key C:linked_on
  *
- * "user" is either a sync code (KET-XXXX-XXXX) or, if Google Sign-In is
- * ever enabled, a Google-verified email address. Both are supported.
+ * "user" is always a sync code (KET-XXXX-XXXX) - never an email, even for
+ * students who sign in with Google. Signing in returns the account's code;
+ * the code is what gets written next to a score. Two consequences worth
+ * keeping: the attempts sheet contains no email addresses at all, and
+ * knowing somebody's Gmail address gives you no way to read their marks.
+ *
+ * The users tab stores Google's opaque account id (the "sub" claim), not
+ * an email and not a name.
  *
  * Run setupSheet() once to build headers and load questions from the live
  * site. Re-run any time to re-sync after editing questions on the site.
@@ -16,6 +23,11 @@
 var SHEET_ID = '1kqKC217U-2EP6rUhtniRiHuGM3FqqnAc-A6B40y_pOM';
 var TEST_URL = 'https://www.kosieducationtimes.com/mock/bihar-police-constable-test.html';
 var TEST_ID  = 'bihar-police-constable-1';
+
+/* Must match GOOGLE_CLIENT_ID in js/auth.js. Empty disables Google Sign-In
+   server-side, which is the safe default: better to reject every token
+   than to accept tokens minted for somebody else's app. */
+var CLIENT_ID = '453571342546-eg71jlhe2q8a13dmrbf2nlj9hn69jrgk.apps.googleusercontent.com';
 
 function ss_() { return SpreadsheetApp.openById(SHEET_ID); }
 
@@ -30,13 +42,19 @@ function json_(o) {
     .setMimeType(ContentService.MimeType.JSON);
 }
 
-/** A sync code looks like KET-7F3K-92QX. Nothing else is accepted as a key. */
+/** A sync code looks like KET-7F3K-92QX. Nothing else is ever a key. */
 function validKey_(k) {
   if (!k) return null;
-  k = String(k).trim();
-  if (/^KET-[A-Z0-9]{4}-[A-Z0-9]{4}$/.test(k)) return k;
-  if (k.indexOf('@') > 0 && k.length < 120) return k.toLowerCase();  // verified email
-  return null;
+  k = String(k).trim().toUpperCase();
+  return /^KET-[A-Z0-9]{4}-[A-Z0-9]{4}$/.test(k) ? k : null;
+}
+
+var ALPHABET_ = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'; // no I O 0 1
+
+function newCode_() {
+  var s = '';
+  for (var i = 0; i < 8; i++) s += ALPHABET_.charAt(Math.floor(Math.random() * ALPHABET_.length));
+  return 'KET-' + s.slice(0, 4) + '-' + s.slice(4);
 }
 
 function setupSheet() {
@@ -69,18 +87,68 @@ function setupSheet() {
   return rows.length;
 }
 
-/** Optional: only used if Google Sign-In is switched on later. */
-function verifyEmail_(credential) {
-  if (!credential) return null;
+/**
+ * Verify a Google ID token and return its claims, or null.
+ *
+ * The aud check is the one that matters. Without it any valid Google
+ * token would be accepted here - including one a student handed to some
+ * unrelated site, which that site could then replay to read or write
+ * this student's scores. Checking that the token was minted for OUR
+ * client id is what makes it proof of identity rather than proof that
+ * Google exists.
+ */
+function verifyToken_(credential) {
+  if (!credential || !CLIENT_ID) return null;
   try {
     var res = UrlFetchApp.fetch(
       'https://oauth2.googleapis.com/tokeninfo?id_token=' + encodeURIComponent(credential),
       { muteHttpExceptions: true });
     if (res.getResponseCode() !== 200) return null;
     var info = JSON.parse(res.getContentText());
+    if (info.aud !== CLIENT_ID) return null;
+    if (info.iss !== 'accounts.google.com' && info.iss !== 'https://accounts.google.com') return null;
     if (String(info.email_verified) !== 'true') return null;
-    return info.email || null;
+    if (!info.sub) return null;
+    if (Number(info.exp) * 1000 < Date.now()) return null;
+    return info;
   } catch (e) { return null; }
+}
+
+/**
+ * Google account -> sync code.
+ *
+ * First time we see an account we mint a code, or adopt the one already
+ * on that device, so a student who took tests anonymously before signing
+ * in keeps that history instead of restarting at zero. After that the
+ * same account always gets the same code back, on any phone.
+ */
+function linkGoogle_(credential, existingKey) {
+  var info = verifyToken_(credential);
+  if (!info) return null;
+
+  var lock = LockService.getScriptLock();
+  try { lock.waitLock(10000); } catch (e) { return null; }
+  try {
+    var sh = sheet_('users');
+    if (sh.getLastRow() === 0) {
+      sh.getRange(1, 1, 1, 3).setValues([['google_id', 'key', 'linked_on']]).setFontWeight('bold');
+      sh.setFrozenRows(1);
+    }
+    var rows = sh.getDataRange().getValues();
+    var taken = {};
+    for (var i = 1; i < rows.length; i++) {
+      if (String(rows[i][0]) === String(info.sub)) return String(rows[i][1]);
+      taken[String(rows[i][1])] = true;
+    }
+    var code = validKey_(existingKey);
+    if (!code || taken[code]) {
+      do { code = newCode_(); } while (taken[code]);
+    }
+    sh.appendRow([String(info.sub), code, new Date()]);
+    return code;
+  } finally {
+    lock.releaseLock();
+  }
 }
 
 function readAttempts_(key) {
@@ -129,16 +197,25 @@ function doGet(e) {
 }
 
 /**
+ * POST { action:'link', credential:'<google id token>', key:'KET-...'|'' }
+ *        -> { ok:true, key:'KET-...' }   the account's sync code
  * POST { action:'saveAttempt', key:'KET-...', attempt:{...} }
- * POST { action:'saveAttempt', credential:'<google id token>', attempt:{...} }
- * POST { action:'history', key|credential }
+ * POST { action:'history', key:'KET-...' }
  */
 function doPost(e) {
   var body;
   try { body = JSON.parse(e.postData.contents); }
   catch (err) { return json_({ ok: false, error: 'bad json' }); }
 
-  var key = body.credential ? verifyEmail_(body.credential) : validKey_(body.key);
+  if (body.action === 'link') {
+    var linked = linkGoogle_(body.credential, body.key);
+    if (!linked) return json_({ ok: false, error: 'token rejected' });
+    return json_({ ok: true, key: linked });
+  }
+
+  var key = body.credential
+    ? linkGoogle_(body.credential, body.key)
+    : validKey_(body.key);
   if (!key) return json_({ ok: false, error: 'no valid key' });
 
   if (body.action === 'saveAttempt') {
