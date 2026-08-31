@@ -194,11 +194,21 @@ function draw(list){
   var pcts = list.map(function(a){ return Number(a.pct) || 0; });
   var best = Math.max.apply(null, pcts);
   var avg  = Math.round(pcts.reduce(function(x,y){ return x+y; }, 0) / pcts.length);
-  var last = pcts[pcts.length-1];
-  var first = pcts[0];
-  var delta = last - first;
 
-  var bars = list.slice(-12).map(function(a){
+  /* Which test was attempted most recently. Everything that compares one
+     attempt to another is scoped to a single test - the two tests are
+     marked differently, so "you improved 30%" computed across them would
+     be comparing an SSC percentage to a Bihar Police one and telling the
+     student something that is simply not true. */
+  var latestTest = list[list.length-1].test;
+  var sameTest = list.filter(function(a){ return a.test === latestTest; });
+  var sameTestPcts = sameTest.map(function(a){ return Number(a.pct) || 0; });
+  var delta = sameTestPcts.length > 1
+    ? sameTestPcts[sameTestPcts.length-1] - sameTestPcts[0]
+    : null;
+
+  /* The bar chart is one test's run of scores, for the same reason. */
+  var bars = sameTest.slice(-12).map(function(a){
     var h = Math.max(4, Math.round((Number(a.pct)||0) * 1.4));
     var d = new Date(a.date);
     return '<div style="display:flex;flex-direction:column;justify-content:flex-end;align-items:center;gap:6px">' +
@@ -251,27 +261,39 @@ function draw(list){
     return "<tr><td>"+esc(TEST_NAMES[t]||t)+"</td><td>"+b.n+"</td><td>"+Math.round(b.sum/b.n)+"%</td><td>"+b.best+"%</td><td>"+b.last+"%</td></tr>";
   }).join("");
 
-  var trend = list.length < 2 ? "" :
-    '<p class="note">पहले प्रयास से अब तक: <strong>' + (delta >= 0 ? "+" : "") + delta + '%</strong>' +
+  var latestName = TEST_NAMES[latestTest] || latestTest;
+
+  var trend = delta === null ? "" :
+    '<p class="note"><strong>' + esc(latestName) + '</strong> — पहले प्रयास से अब तक: <strong>' +
+    (delta >= 0 ? "+" : "") + delta + '%</strong>' +
     (delta > 0 ? ' — सुधार दिख रहा है, यही क्रम बनाए रखिए।'
      : delta < 0 ? ' — इस बार गिरावट है। नीचे सबसे कमजोर विषय से शुरू कीजिए।'
      : ' — स्कोर स्थिर है। कमजोर विषय पर ध्यान देने से फर्क पड़ेगा।') + '</p>';
 
+  /* One test only: the headline average means something. More than one:
+     it does not, because the tests are marked differently. In that case
+     lead with the count and let the per-test table carry the numbers. */
+  var headline = testKeys.length === 1
+    ? '<div class="scorecard"><h2>कुल प्रदर्शन</h2>' +
+        '<div class="big">' + avg + '%</div>' +
+        '<p class="sub">औसत &middot; सर्वश्रेष्ठ ' + best + '% &middot; कुल ' + list.length + ' प्रयास</p></div>'
+    : '<div class="scorecard"><h2>कुल प्रदर्शन</h2>' +
+        '<div class="big">' + list.length + '</div>' +
+        '<p class="sub">कुल प्रयास &middot; ' + testKeys.length + ' टेस्ट में &middot; नीचे टेस्टवार देखिए</p></div>';
+
   $("content").innerHTML =
-    '<div class="scorecard"><h2>कुल प्रदर्शन</h2>' +
-      '<div class="big">' + avg + '%</div>' +
-      '<p class="sub">औसत &middot; सर्वश्रेष्ठ ' + best + '% &middot; कुल ' + list.length + ' प्रयास</p>' +
-    '</div>' +
-    trend +
+    headline +
     (testKeys.length > 1 ? '<h2>टेस्टवार प्रदर्शन</h2>' +
       '<table class="facts"><thead><tr><th>टेस्ट</th><th>प्रयास</th><th>औसत</th><th>सर्वश्रेष्ठ</th><th>अंतिम</th></tr></thead><tbody>'+testRows+'</tbody></table>' +
-      '<p class="note">दोनों टेस्ट की अंक-व्यवस्था अलग है — SSC GD में नेगेटिव मार्किंग है, Bihar Police में नहीं। इसलिए दोनों का प्रतिशत अलग-अलग देखिए, मिलाकर नहीं।</p>' : '') +
-    '<h2>स्कोर का क्रम</h2>' +
+      '<p class="note">दोनों टेस्ट की अंक-व्यवस्था अलग है — SSC GD में नेगेटिव मार्किंग है, Bihar Police में नहीं। इसलिए दोनों का प्रतिशत अलग-अलग देखिए, मिलाकर नहीं। इसी वजह से ऊपर कोई मिला-जुला औसत नहीं दिखाया जाता।</p>' : '') +
+    trend +
+    '<h2>स्कोर का क्रम — ' + esc(latestName) + '</h2>' +
     '<div style="display:flex;align-items:flex-end;gap:10px;overflow-x:auto;padding:14px 0 4px;min-height:170px">' + bars + '</div>' +
-    '<p class="note">बाएँ से दाएँ — पुराने से नए प्रयास (अधिकतम 12)।</p>' +
+    '<p class="note">बाएँ से दाएँ — इसी टेस्ट के पुराने से नए प्रयास (अधिकतम 12)।</p>' +
     (topicRows ? '<h2>विषयवार मजबूती और कमजोरी</h2>' +
       '<table class="facts"><thead><tr><th>विषय</th><th>सही</th><th>प्रतिशत</th></tr></thead><tbody>'+topicRows+'</tbody></table>' +
-      '<p>सबसे ऊपर वाला विषय सबसे कमजोर है। अगली तैयारी वहीं से शुरू कीजिए।</p>' : '') +
+      '<p>सबसे ऊपर वाला विषय सबसे कमजोर है। अगली तैयारी वहीं से शुरू कीजिए।</p>' +
+      (testKeys.length > 1 ? '<p class="note">यह गिनती सभी टेस्ट को मिलाकर है। यहाँ मिलाना ठीक है, क्योंकि गिना जा रहा है कि कितने प्रश्न सही हुए — अंक नहीं, जिन पर नेगेटिव मार्किंग का फर्क पड़ता।</p>' : '') : '') +
     '<h2>सभी प्रयास</h2>' +
     '<table class="facts"><thead><tr><th>तारीख</th><th>टेस्ट</th><th>स्कोर</th><th>प्रतिशत</th></tr></thead><tbody>'+attemptRows+'</tbody></table>' +
     '<p><a href="bihar-police-constable-test.html">एक और टेस्ट दीजिए →</a></p>';
