@@ -28,7 +28,7 @@ header.site {
   padding: 16px 0;
 }
 header.site .wrap { display: flex; align-items: center; justify-content: space-between; gap: 16px; }
-.logo { font-size: 21px; font-weight: 700; color: var(--ink); white-space: nowrap; }
+.logo { font-size: 24px; font-weight: 800; letter-spacing: -.015em; color: var(--ink); white-space: nowrap; }
 .logo span { color: var(--saffron); }
 nav.site { display: flex; align-items: center; }
 nav.site a { margin-left: 20px; color: var(--muted); font-weight: 500; font-size: 15px; white-space: nowrap; }
@@ -49,7 +49,18 @@ nav.site a:hover { color: var(--ink); }
     align-items: stretch;
     gap: 0;
   }
-  .logo { font-size: 20px; padding-bottom: 10px; }
+  /* The wordmark leads on mobile. It is the only branding a student sees
+     on a phone, so it gets the width rather than sharing a line with the
+     nav. clamp keeps it as large as will fit: the text measures roughly
+     9.3px of width per 1px of font-size, so 32px needs 298px and still
+     clears a 320px screen's 280px of usable width. */
+  .logo {
+    font-size: clamp(26px, 7.5vw, 32px);
+    font-weight: 800;
+    letter-spacing: -.02em;
+    line-height: 1.1;
+    padding-bottom: 12px;
+  }
   nav.site {
     display: flex;
     gap: 22px;
