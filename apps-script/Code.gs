@@ -101,7 +101,15 @@ function setupSheet() {
   }
 
   if (!rows.length) throw new Error('No question banks found. ' + report.join(' | '));
-  q.getRange(2, 1, rows.length, 10).setValues(rows);
+
+  /* Force plain text before writing. Otherwise Sheets helpfully converts
+     an option like "10%" into the number 0.1, and the student is offered
+     "0.1, 0.12, 0.15, 0.2" as answers to a percentage question. Dates and
+     fractions would go the same way. Caught by round-tripping the bank
+     through the sheet and diffing it against the page. */
+  var range = q.getRange(2, 1, rows.length, 10);
+  range.setNumberFormat('@');
+  range.setValues(rows);
   q.setFrozenRows(1);
 
   var a = sheet_('attempts');
@@ -214,10 +222,14 @@ function doGet(e) {
     var r = rows[i];
     if (!r[0]) continue;
     if (testId && String(r[9]).trim() !== testId) continue;
+    /* Second line of defence against Sheets' type coercion: whatever the
+       cell holds, the page gets a string. A number here renders as
+       "0.1" where the question expects "10%". */
     out.push({
-      q: r[0], options: [r[1], r[2], r[3], r[4]],
-      answer: Number(r[5]) - 1, explain: r[6],
-      topic: r[7], difficulty: r[8]
+      q: String(r[0]),
+      options: [String(r[1]), String(r[2]), String(r[3]), String(r[4])],
+      answer: Number(r[5]) - 1, explain: String(r[6]),
+      topic: String(r[7]), difficulty: String(r[8])
     });
   }
   return json_({ ok: true, questions: out });
