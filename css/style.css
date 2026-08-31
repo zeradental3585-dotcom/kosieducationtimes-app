@@ -225,6 +225,14 @@ h4 { font-size: 16px; margin: 20px 0 8px; color: var(--ink); }
 .mock-meta span { background:var(--bg); border:1px solid var(--border); border-radius:999px; padding:6px 14px; font-size:13px; font-weight:600; }
 #authbar { display:flex; flex-wrap:wrap; align-items:center; gap:12px; margin:18px 0; padding:14px 16px; border:1px solid var(--border); border-radius:8px; }
 #authbar .who { font-size:14px; color:var(--muted); }
+/* On a narrow phone the sign-in button and the code box must not be
+   squeezed onto one line - the code input becomes untypable. */
+#authbar #gsi, #authbar #keybox { display:flex; flex-wrap:wrap; align-items:center; gap:8px; }
+@media (max-width:560px) {
+  #authbar { flex-direction:column; align-items:stretch; }
+  #authbar .who { width:100%; }
+  #authbar #keybox input { flex:1 1 140px; min-width:0; width:auto !important; }
+}
 .q { border:1px solid var(--border); border-radius:10px; padding:18px; margin:0 0 16px; }
 .q .qnum { font-size:12px; font-weight:700; letter-spacing:.04em; text-transform:uppercase; color:var(--saffron); }
 .q .qtopic { font-size:12px; color:var(--muted); float:right; }

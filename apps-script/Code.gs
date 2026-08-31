@@ -21,8 +21,15 @@
  */
 
 var SHEET_ID = '1kqKC217U-2EP6rUhtniRiHuGM3FqqnAc-A6B40y_pOM';
-var TEST_URL = 'https://www.kosieducationtimes.com/mock/bihar-police-constable-test.html';
-var TEST_ID  = 'bihar-police-constable-1';
+
+/* Every test on the site. Adding a test is one line here plus the page
+   itself - setupSheet() then picks it up on the next run. */
+var TESTS = [
+  { id: 'bihar-police-constable-1',
+    url: 'https://www.kosieducationtimes.com/mock/bihar-police-constable-test.html' },
+  { id: 'ssc-gd-constable-1',
+    url: 'https://www.kosieducationtimes.com/mock/ssc-gd-constable-test.html' }
+];
 
 /* Must match GOOGLE_CLIENT_ID in js/auth.js. Empty disables Google Sign-In
    server-side, which is the safe default: better to reject every token
@@ -57,6 +64,16 @@ function newCode_() {
   return 'KET-' + s.slice(0, 4) + '-' + s.slice(4);
 }
 
+/**
+ * Pull every test's question bank off the live pages into the sheet.
+ * Safe to re-run: it rebuilds the questions tab from scratch and never
+ * touches attempts or users.
+ *
+ * Test pages declare their bank as `questions: [...]` inside a
+ * window.KET_TEST config; the older single-test page used
+ * `var QUESTIONS = [...]`. Both shapes are accepted so this keeps
+ * working if one page is redeployed before another.
+ */
 function setupSheet() {
   var q = sheet_('questions');
   q.clear();
@@ -65,15 +82,25 @@ function setupSheet() {
     'answer','explain','topic','difficulty','test_id'
   ]]).setFontWeight('bold');
 
-  var html = UrlFetchApp.fetch(TEST_URL).getContentText();
-  var m = html.match(/var QUESTIONS = (\[[\s\S]*?\]);/);
-  if (!m) throw new Error('Could not find the question bank on the live page.');
-  var qs = JSON.parse(m[1]);
+  var rows = [], report = [];
 
-  var rows = qs.map(function (x) {
-    return [x.q, x.options[0], x.options[1], x.options[2], x.options[3],
-            x.answer + 1, x.explain, x.topic, 'easy', TEST_ID];
-  });
+  for (var t = 0; t < TESTS.length; t++) {
+    var test = TESTS[t];
+    var html = UrlFetchApp.fetch(test.url).getContentText();
+    var m = html.match(/questions:\s*(\[[\s\S]*?\])\s*\n\};/) ||
+            html.match(/var QUESTIONS = (\[[\s\S]*?\]);/);
+    if (!m) { report.push(test.id + ': BANK NOT FOUND'); continue; }
+
+    var qs = JSON.parse(m[1]);
+    for (var i = 0; i < qs.length; i++) {
+      var x = qs[i];
+      rows.push([x.q, x.options[0], x.options[1], x.options[2], x.options[3],
+                 x.answer + 1, x.explain, x.topic, 'easy', test.id]);
+    }
+    report.push(test.id + ': ' + qs.length);
+  }
+
+  if (!rows.length) throw new Error('No question banks found. ' + report.join(' | '));
   q.getRange(2, 1, rows.length, 10).setValues(rows);
   q.setFrozenRows(1);
 
@@ -83,8 +110,8 @@ function setupSheet() {
   ]]).setFontWeight('bold');
   a.setFrozenRows(1);
 
-  Logger.log('Loaded ' + rows.length + ' questions.');
-  return rows.length;
+  Logger.log('Loaded ' + rows.length + ' questions -> ' + report.join(' | '));
+  return report.join(' | ');
 }
 
 /**

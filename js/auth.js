@@ -127,9 +127,14 @@
           });
         }
       });
+      /* Locale is pinned to en on purpose. Google's Hindi string for
+         signin_with renders as "जिनमें Google से साइन इन किया गया है",
+         which is not a sentence a student would parse. "Continue with
+         Google" is understood on every phone in Bihar. The Hindi
+         explanation around the button is ours, and reads properly. */
       google.accounts.id.renderButton(el, {
         theme: "outline", size: "large", shape: "pill",
-        text: "signin_with", locale: "hi"
+        text: "continue_with", locale: "en"
       });
     });
     return true;

@@ -135,8 +135,15 @@
 <script>
 var APPS_SCRIPT_URL = KET.ENDPOINT;
 
+/* Sheet rows carry the test id. Students should see the exam name. */
+var TEST_NAMES = {
+  "bihar-police-constable-1": "Bihar Police Constable Test 1",
+  "ssc-gd-constable-1": "SSC GD Constable Test 1"
+};
+
 function $(id){ return document.getElementById(id); }
 function esc(s){ return String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;"); }
+function num(n){ return (Math.round(Number(n)*100)/100).toString(); }
 function getKey(){ return KET.getKey(); }
 
 function renderBar(){
@@ -223,7 +230,25 @@ function draw(list){
 
   var attemptRows = list.slice().reverse().slice(0,20).map(function(a){
     var d = new Date(a.date);
-    return "<tr><td>"+d.toLocaleDateString("hi-IN")+"</td><td>"+esc(a.test||"")+"</td><td>"+a.score+" / "+a.total+"</td><td>"+(Number(a.pct)||0)+"%</td></tr>";
+    return "<tr><td>"+d.toLocaleDateString("hi-IN")+"</td><td>"+esc(TEST_NAMES[a.test]||a.test||"")+"</td><td>"+num(a.score)+" / "+num(a.total)+"</td><td>"+(Number(a.pct)||0)+"%</td></tr>";
+  }).join("");
+
+  /* Per-test summary. The two tests are not scored the same way - one has
+     negative marking and one does not - so a single average across both
+     would flatter or punish a student for no reason they could act on. */
+  var byTest = {};
+  list.forEach(function(a){
+    var t = a.test || "?";
+    byTest[t] = byTest[t] || { n:0, sum:0, best:0, last:0 };
+    var pc = Number(a.pct) || 0;
+    byTest[t].n++; byTest[t].sum += pc;
+    if (pc > byTest[t].best) byTest[t].best = pc;
+    byTest[t].last = pc;
+  });
+  var testKeys = Object.keys(byTest);
+  var testRows = testKeys.map(function(t){
+    var b = byTest[t];
+    return "<tr><td>"+esc(TEST_NAMES[t]||t)+"</td><td>"+b.n+"</td><td>"+Math.round(b.sum/b.n)+"%</td><td>"+b.best+"%</td><td>"+b.last+"%</td></tr>";
   }).join("");
 
   var trend = list.length < 2 ? "" :
@@ -238,6 +263,9 @@ function draw(list){
       '<p class="sub">औसत &middot; सर्वश्रेष्ठ ' + best + '% &middot; कुल ' + list.length + ' प्रयास</p>' +
     '</div>' +
     trend +
+    (testKeys.length > 1 ? '<h2>टेस्टवार प्रदर्शन</h2>' +
+      '<table class="facts"><thead><tr><th>टेस्ट</th><th>प्रयास</th><th>औसत</th><th>सर्वश्रेष्ठ</th><th>अंतिम</th></tr></thead><tbody>'+testRows+'</tbody></table>' +
+      '<p class="note">दोनों टेस्ट की अंक-व्यवस्था अलग है — SSC GD में नेगेटिव मार्किंग है, Bihar Police में नहीं। इसलिए दोनों का प्रतिशत अलग-अलग देखिए, मिलाकर नहीं।</p>' : '') +
     '<h2>स्कोर का क्रम</h2>' +
     '<div style="display:flex;align-items:flex-end;gap:10px;overflow-x:auto;padding:14px 0 4px;min-height:170px">' + bars + '</div>' +
     '<p class="note">बाएँ से दाएँ — पुराने से नए प्रयास (अधिकतम 12)।</p>' +

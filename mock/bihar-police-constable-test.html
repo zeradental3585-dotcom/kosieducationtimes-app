@@ -169,14 +169,14 @@
 
 <script src="../js/auth.js"></script>
 <script>
-/* Endpoint and identity both live in js/auth.js, so there is one place to
-   change them rather than one per test page. */
-var APPS_SCRIPT_URL = KET.ENDPOINT;
-
-var TEST_ID = "bihar-police-constable-1";
-var DURATION_SEC = 30 * 60;
-
-var QUESTIONS = [
+/* Bihar Police Constable ki likhit pariksha me negative marking nahi hai,
+   isliye negative: 0 - aur wahi aadat is test me bhi banti hai. */
+window.KET_TEST = {
+  id: "bihar-police-constable-1",
+  duration: 30 * 60,
+  marks: 1,
+  negative: 0,
+  questions: [
   {
     "topic": "हिंदी",
     "q": "‘विद्यालय’ शब्द में कौन सी संधि है?",
@@ -193,12 +193,12 @@ var QUESTIONS = [
     "topic": "हिंदी",
     "q": "‘नयन’ का पर्यायवाची शब्द कौन सा है?",
     "options": [
-      "श्रवण",
       "नेत्र",
+      "श्रवण",
       "वदन",
       "चरण"
     ],
-    "answer": 1,
+    "answer": 0,
     "explain": "नयन का अर्थ आँख है, और नेत्र भी आँख का ही पर्यायवाची है। श्रवण का अर्थ कान, वदन का मुख और चरण का पैर होता है।"
   },
   {
@@ -218,35 +218,35 @@ var QUESTIONS = [
     "q": "‘रात’ शब्द का तत्सम रूप क्या है?",
     "options": [
       "रजनी",
-      "रात्रि",
       "निशा",
+      "रात्रि",
       "यामिनी"
     ],
-    "answer": 1,
+    "answer": 2,
     "explain": "‘रात’ तद्भव शब्द है और इसका तत्सम रूप ‘रात्रि’ है। रजनी, निशा और यामिनी पर्यायवाची तो हैं, पर ‘रात’ के सीधे तत्सम रूप नहीं।"
   },
   {
     "topic": "English",
     "q": "Choose the word closest in meaning to <strong>brave</strong>.",
     "options": [
-      "Timid",
       "Courageous",
+      "Timid",
       "Careless",
       "Gentle"
     ],
-    "answer": 1,
+    "answer": 0,
     "explain": "Brave का अर्थ साहसी होता है, और courageous उसका सबसे नज़दीकी पर्यायवाची है। Timid का अर्थ डरपोक है, यानी विपरीत।"
   },
   {
     "topic": "English",
     "q": "Fill in the blank: She is good ____ mathematics.",
     "options": [
-      "in",
-      "on",
       "at",
+      "on",
+      "in",
       "for"
     ],
-    "answer": 2,
+    "answer": 0,
     "explain": "किसी विषय या कौशल में निपुण होने के लिए ‘good at’ का प्रयोग होता है — good at mathematics, good at singing।"
   },
   {
@@ -254,11 +254,11 @@ var QUESTIONS = [
     "q": "Choose the correct sentence.",
     "options": [
       "He go to school every day.",
-      "He goes to school every day.",
+      "He gone to school every day.",
       "He going to school every day.",
-      "He gone to school every day."
+      "He goes to school every day."
     ],
-    "answer": 1,
+    "answer": 3,
     "explain": "Simple present में तीसरे पुरुष एकवचन (he, she, it) के साथ क्रिया में ‘s’ या ‘es’ जुड़ता है — इसलिए ‘He goes’।"
   },
   {
@@ -266,11 +266,11 @@ var QUESTIONS = [
     "q": "What is the antonym of <strong>ancient</strong>?",
     "options": [
       "Old",
-      "Modern",
+      "Antique",
       "Historic",
-      "Antique"
+      "Modern"
     ],
-    "answer": 1,
+    "answer": 3,
     "explain": "Ancient का अर्थ प्राचीन है, इसलिए इसका विलोम modern (आधुनिक) होगा। Old, historic और antique तो उसी अर्थ के आसपास हैं।"
   },
   {
@@ -303,10 +303,10 @@ var QUESTIONS = [
     "options": [
       "200 मीटर",
       "250 मीटर",
-      "300 मीटर",
-      "360 मीटर"
+      "360 मीटर",
+      "300 मीटर"
     ],
-    "answer": 2,
+    "answer": 3,
     "explain": "72 किमी/घंटा को मीटर/सेकंड में बदलें: 72 × (5/18) = 20 मी/से। दूरी = 20 × 15 = 300 मीटर।"
   },
   {
@@ -338,11 +338,11 @@ var QUESTIONS = [
     "q": "निर्वात में प्रकाश की चाल लगभग कितनी होती है?",
     "options": [
       "3 × 10⁶ मी/से",
-      "3 × 10⁸ मी/से",
+      "3 × 10⁵ मी/से",
       "3 × 10¹⁰ मी/से",
-      "3 × 10⁵ मी/से"
+      "3 × 10⁸ मी/से"
     ],
-    "answer": 1,
+    "answer": 3,
     "explain": "निर्वात में प्रकाश की चाल लगभग 3 × 10⁸ मीटर प्रति सेकंड (लगभग 3 लाख किलोमीटर प्रति सेकंड) होती है।"
   },
   {
@@ -363,22 +363,22 @@ var QUESTIONS = [
     "options": [
       "अग्न्याशय",
       "थायरॉइड",
-      "यकृत",
-      "पीयूष ग्रंथि"
+      "पीयूष ग्रंथि",
+      "यकृत"
     ],
-    "answer": 2,
+    "answer": 3,
     "explain": "यकृत (liver) मानव शरीर की सबसे बड़ी ग्रंथि है। पीयूष ग्रंथि सबसे छोटी होती है, पर उसे ‘मास्टर ग्रंथि’ कहा जाता है।"
   },
   {
     "topic": "विज्ञान",
     "q": "विद्युत धारा मापने की इकाई क्या है?",
     "options": [
-      "वोल्ट",
-      "ओम",
       "ऐम्पियर",
+      "ओम",
+      "वोल्ट",
       "वाट"
     ],
-    "answer": 2,
+    "answer": 0,
     "explain": "विद्युत धारा की इकाई ऐम्पियर है। वोल्ट विभवांतर की, ओम प्रतिरोध की और वाट शक्ति की इकाई है।"
   },
   {
@@ -398,11 +398,11 @@ var QUESTIONS = [
     "q": "किस नदी को ‘बिहार का शोक’ कहा जाता है?",
     "options": [
       "गंडक",
-      "कोसी",
       "सोन",
+      "कोसी",
       "बागमती"
     ],
-    "answer": 1,
+    "answer": 2,
     "explain": "कोसी नदी को ‘बिहार का शोक’ कहा जाता है, क्योंकि यह बार-बार अपनी धारा बदलती है और भीषण बाढ़ लाती है। कोसी प्रमंडल का नाम भी इसी नदी पर है।"
   },
   {
@@ -422,11 +422,11 @@ var QUESTIONS = [
     "q": "मौलिक अधिकार भारतीय संविधान के किस भाग में वर्णित हैं?",
     "options": [
       "भाग II",
-      "भाग III",
       "भाग IV",
+      "भाग III",
       "भाग V"
     ],
-    "answer": 1,
+    "answer": 2,
     "explain": "मौलिक अधिकार संविधान के भाग III (अनुच्छेद 12 से 35) में हैं। भाग IV में नीति निदेशक तत्व आते हैं।"
   },
   {
@@ -447,250 +447,40 @@ var QUESTIONS = [
     "options": [
       "पटना",
       "गया",
-      "नालंदा",
-      "वैशाली"
+      "वैशाली",
+      "नालंदा"
     ],
-    "answer": 2,
+    "answer": 3,
     "explain": "प्राचीन नालंदा विश्वविद्यालय आज के नालंदा जिले में स्थित था, जिसका मुख्यालय बिहारशरीफ है।"
   },
   {
     "topic": "सामान्य ज्ञान",
     "q": "बिहार दिवस किस तारीख को मनाया जाता है?",
     "options": [
-      "22 मार्च",
+      "26 जनवरी",
       "1 अप्रैल",
       "15 नवंबर",
-      "26 जनवरी"
+      "22 मार्च"
     ],
-    "answer": 0,
+    "answer": 3,
     "explain": "बिहार दिवस 22 मार्च को मनाया जाता है, क्योंकि 1912 में इसी दिन बंगाल से अलग होकर बिहार एक अलग प्रांत बना था।"
   },
   {
     "topic": "सामान्य ज्ञान",
     "q": "कोसी प्रमंडल में कौन-कौन से जिले आते हैं?",
     "options": [
-      "सहरसा, मधेपुरा, सुपौल",
       "पूर्णिया, कटिहार, अररिया",
+      "सहरसा, मधेपुरा, सुपौल",
       "दरभंगा, मधुबनी, समस्तीपुर",
       "भागलपुर, बांका, मुंगेर"
     ],
-    "answer": 0,
+    "answer": 1,
     "explain": "कोसी प्रमंडल में तीन जिले आते हैं — सहरसा, मधेपुरा और सुपौल। इसका मुख्यालय सहरसा है।"
   }
-];
-
-var remaining = DURATION_SEC, ticker = null, started = false;
-
-function $(id){ return document.getElementById(id); }
-function esc(s){ return String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;"); }
-
-/* ---------- who is taking this test ---------- */
-function getKey(){ return KET.getKey(); }
-function ensureKey(){ return KET.ensureKey(); }
-
-function renderKeyBox(){
-  var k = KET.getKey(), p = KET.profile();
-
-  if (p && k){
-    $("whoami").innerHTML =
-      (p.picture ? '<img src="'+esc(p.picture)+'" alt="" width="28" height="28" style="border-radius:50%;vertical-align:-8px;margin-left:6px"> ' : "") +
-      esc(p.name || "आप") + " — आपकी प्रगति इस Google अकाउंट से जुड़ी है।";
-    $("gsi").innerHTML = "";
-    $("keybox").innerHTML =
-      '<a class="btn secondary" href="dashboard.html">मेरी प्रगति देखें</a> ' +
-      '<button class="btn secondary" id="signOut" type="button">साइन आउट</button>';
-    $("signOut").addEventListener("click", function(){
-      KET.signOut(); renderKeyBox();
-    });
-    return;
-  }
-
-  if (k){
-    $("whoami").innerHTML = "आपका सिंक कोड: <strong id='mykey'>" + esc(k) + "</strong>";
-    $("keybox").innerHTML =
-      '<button class="btn secondary" id="copyKey" type="button">कोड कॉपी करें</button> ' +
-      '<a class="btn secondary" href="dashboard.html">मेरी प्रगति देखें</a>';
-    $("copyKey").addEventListener("click", function(){
-      var t = $("mykey").textContent;
-      if (navigator.clipboard) navigator.clipboard.writeText(t);
-      this.textContent = "कॉपी हो गया";
-      var b = this; setTimeout(function(){ b.textContent = "कोड कॉपी करें"; }, 2000);
-    });
-  } else {
-    $("whoami").textContent = KET.enabled()
-      ? "Google से साइन इन कीजिए — फिर किसी भी फोन पर आपकी प्रगति अपने आप दिखेगी। या बिना साइन इन किए टेस्ट दीजिए, आपको एक सिंक कोड मिल जाएगा।"
-      : "टेस्ट देते ही आपको एक सिंक कोड मिलेगा। उसे लिख लीजिए — किसी भी फोन पर वही कोड डालकर अपनी पूरी प्रगति देख सकते हैं।";
-    $("keybox").innerHTML = '<a class="btn secondary" href="dashboard.html">कोड है? प्रगति देखें</a>';
-  }
-
-  KET.mountSignIn($("gsi"), function(){ renderKeyBox(); renderHistory(); });
-}
-
-/* ---------- render ---------- */
-function renderQuiz(){
-  var html = "";
-  QUESTIONS.forEach(function(q, i){
-    html += '<div class="q" id="q'+i+'">';
-    html += '<span class="qnum">प्रश्न '+(i+1)+'</span><span class="qtopic">'+esc(q.topic)+'</span>';
-    html += '<div class="qtext">'+q.q+'</div>';
-    q.options.forEach(function(opt, j){
-      html += '<label id="q'+i+'o'+j+'"><input type="radio" name="q'+i+'" value="'+j+'">'+opt+'</label>';
-    });
-    html += '</div>';
-  });
-  $("quizForm").innerHTML = html;
-}
-
-function fmt(s){
-  var m = Math.floor(s/60), r = s%60;
-  return (m<10?"0":"")+m+":"+(r<10?"0":"")+r;
-}
-
-function startTest(){
-  started = true;
-  $("intro").classList.add("hidden");
-  $("quizWrap").classList.remove("hidden");
-  renderQuiz();
-  ticker = setInterval(function(){
-    remaining--;
-    $("timer").textContent = fmt(remaining);
-    if (remaining <= 0){ clearInterval(ticker); grade(true); }
-  }, 1000);
-}
-
-/* ---------- grading ---------- */
-function grade(auto){
-  if (!started) return;
-  clearInterval(ticker);
-  var score = 0, attempted = 0, byTopic = {}, wrongList = [];
-
-  QUESTIONS.forEach(function(q, i){
-    var sel = document.querySelector('input[name="q'+i+'"]:checked');
-    var chosen = sel ? parseInt(sel.value, 10) : -1;
-    if (chosen !== -1) attempted++;
-    byTopic[q.topic] = byTopic[q.topic] || { right:0, total:0 };
-    byTopic[q.topic].total++;
-
-    var correctLabel = $("q"+i+"o"+q.answer);
-    correctLabel.classList.add("correct");
-    if (chosen === q.answer){ score++; byTopic[q.topic].right++; }
-    else {
-      if (chosen !== -1) $("q"+i+"o"+chosen).classList.add("wrong");
-      wrongList.push((i+1)+". "+q.topic);
-    }
-    var box = document.createElement("div");
-    box.className = "explain";
-    box.innerHTML = "<strong>सही उत्तर:</strong> " + q.options[q.answer] + "<br>" + q.explain;
-    $("q"+i).appendChild(box);
-    document.querySelectorAll('input[name="q'+i+'"]').forEach(function(r){ r.disabled = true; });
-  });
-
-  $("submitBtn").classList.add("hidden");
-  var pct = Math.round(score / QUESTIONS.length * 100);
-
-  var weak = Object.keys(byTopic).map(function(t){
-    return { t:t, right:byTopic[t].right, total:byTopic[t].total,
-             pct: Math.round(byTopic[t].right / byTopic[t].total * 100) };
-  }).sort(function(a,b){ return a.pct - b.pct; });
-
-  var rows = weak.map(function(w){
-    return "<tr><td>"+esc(w.t)+"</td><td>"+w.right+" / "+w.total+"</td><td>"+w.pct+"%</td></tr>";
-  }).join("");
-
-  var advice = weak[0].pct < 100
-    ? "<p>सबसे कमजोर विषय: <strong>"+esc(weak[0].t)+"</strong> ("+weak[0].pct+"%)। अगली तैयारी वहीं से शुरू कीजिए।</p>"
-    : "<p>सभी विषयों में पूरे अंक। अगला टेस्ट कठिनाई बढ़ाकर दीजिए।</p>";
-
-  var key = ensureKey();
-  var prof = KET.profile();
-
-  var idBlock = prof
-    ? '<div class="mock-config"><strong>'+esc(prof.name || "आपका अकाउंट")+' — प्रगति सेव हो गई</strong><br>'+
-      'आप जिस भी फोन पर इसी Google अकाउंट से साइन इन करेंगे, यह रिकॉर्ड वहाँ दिखेगा। '+
-      '<a href="dashboard.html">मेरी प्रगति देखें →</a></div>'
-    : '<div class="mock-config"><strong>आपका सिंक कोड: '+esc(key)+'</strong><br>'+
-      'इसे लिख लीजिए। किसी भी दूसरे फोन पर यही कोड डालकर आप अपनी पूरी प्रगति देख सकते हैं — न कोई अकाउंट चाहिए, न पासवर्ड। '+
-      '<a href="dashboard.html">मेरी प्रगति देखें →</a></div>';
-
-  $("resultWrap").innerHTML =
-    '<div class="scorecard"><h2>आपका स्कोर</h2>'+
-    '<div class="big">'+score+' / '+QUESTIONS.length+'</div>'+
-    '<p class="sub">'+pct+'% &middot; '+attempted+' प्रश्न हल किए'+(auto ? ' &middot; समय समाप्त' : '')+'</p></div>'+
-    idBlock+
-    '<h2>विषयवार प्रदर्शन</h2>'+
-    '<table class="facts"><thead><tr><th>विषय</th><th>सही</th><th>प्रतिशत</th></tr></thead><tbody>'+rows+'</tbody></table>'+
-    advice+
-    '<p>नीचे हर प्रश्न के साथ सही उत्तर और उसकी व्याख्या जुड़ गई है।</p>';
-  $("resultWrap").classList.remove("hidden");
-  $("resultWrap").scrollIntoView({ behavior:"smooth" });
-
-  saveAttempt({
-    test: TEST_ID, date: new Date().toISOString(),
-    score: score, total: QUESTIONS.length, pct: pct,
-    wrong: wrongList.join(" | "),
-    topics: JSON.stringify(weak.map(function(w){ return [w.t, w.right, w.total]; }))
-  });
-  renderKeyBox();
-}
-
-/* ---------- storage ---------- */
-function localAttempts(){
-  try { return JSON.parse(localStorage.getItem("ket_attempts") || "[]"); }
-  catch(e){ return []; }
-}
-function saveAttempt(a){
-  try {
-    var all = localAttempts(); all.push(a);
-    localStorage.setItem("ket_attempts", JSON.stringify(all.slice(-100)));
-  } catch(e){}
-
-  var key = getKey();
-  if (key && APPS_SCRIPT_URL){
-    fetch(APPS_SCRIPT_URL, {
-      method: "POST",
-      headers: { "Content-Type": "text/plain;charset=utf-8" },
-      body: JSON.stringify({ action:"saveAttempt", key:key, attempt:a })
-    }).catch(function(){ /* offline - the local copy still stands */ });
-  }
-  renderHistory();
-}
-
-function renderHistory(){
-  var all = localAttempts().filter(function(a){ return a.test === TEST_ID; });
-  if (!all.length){ $("historyWrap").innerHTML = ""; return; }
-  var rows = all.slice().reverse().slice(0,10).map(function(a){
-    var d = new Date(a.date);
-    return "<tr><td>"+d.toLocaleDateString("hi-IN")+"</td><td>"+a.score+" / "+a.total+"</td><td>"+a.pct+"%</td></tr>";
-  }).join("");
-  $("historyWrap").innerHTML =
-    "<h2>इस टेस्ट के आपके पिछले प्रयास</h2>"+
-    '<table class="facts"><thead><tr><th>तारीख</th><th>स्कोर</th><th>प्रतिशत</th></tr></thead><tbody>'+rows+"</tbody></table>"+
-    '<p><a href="dashboard.html">सभी टेस्ट की पूरी प्रगति देखें →</a></p>';
-}
-
-/* ---------- questions come from the Sheet; bundled bank is the fallback ---------- */
-function loadQuestionsFromSheet(){
-  if (!APPS_SCRIPT_URL) return;
-  fetch(APPS_SCRIPT_URL + "?test=" + encodeURIComponent(TEST_ID))
-    .then(function(r){ return r.json(); })
-    .then(function(j){
-      if (j && j.ok && j.questions && j.questions.length){
-        var clean = j.questions.filter(function(q){
-          return q && q.q && q.options && q.options.length === 4 &&
-                 q.answer >= 0 && q.answer < 4;
-        });
-        if (clean.length && !started) QUESTIONS = clean;
-      }
-    })
-    .catch(function(){});
-}
-
-$("startBtn").addEventListener("click", startTest);
-$("submitBtn").addEventListener("click", function(){ grade(false); });
-loadQuestionsFromSheet();
-renderKeyBox();
-renderHistory();
+]
+};
 </script>
+<script src="../js/quiz.js"></script>
 
 </body>
 </html>
