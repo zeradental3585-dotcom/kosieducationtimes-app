@@ -114,23 +114,97 @@
     return (m < 10 ? "0" : "") + m + ":" + (r < 10 ? "0" : "") + r;
   }
 
-  function startTest() {
+  /* ---------- surviving an interrupted test ----------
+     A student here takes this on one phone, often a shared one, on a
+     connection that drops and a battery that does not last. Losing 18
+     minutes of a timed test to a dropped call is the kind of thing that
+     stops someone coming back. Answers and the clock are written to the
+     device continuously, so the test can be picked up where it stopped.
+     Nothing here touches the network. */
+  var PROGRESS_KEY = "ket_progress_" + TEST_ID;
+  var MAX_RESUME_AGE = 24 * 60 * 60 * 1000;
+
+  function saveProgress() {
+    if (!started) return;
+    var answers = {};
+    QUESTIONS.forEach(function (q, i) {
+      var sel = document.querySelector('input[name="q' + i + '"]:checked');
+      if (sel) answers[i] = parseInt(sel.value, 10);
+    });
+    try {
+      localStorage.setItem(PROGRESS_KEY, JSON.stringify({
+        at: Date.now(), remaining: remaining, answers: answers, n: QUESTIONS.length
+      }));
+    } catch (e) {}
+  }
+
+  function readProgress() {
+    try {
+      var p = JSON.parse(localStorage.getItem(PROGRESS_KEY) || "null");
+      if (!p || !p.at) return null;
+      if (Date.now() - p.at > MAX_RESUME_AGE) return null;   // stale, treat as gone
+      if (!p.remaining || p.remaining <= 0) return null;      // time was already up
+      if (p.n !== QUESTIONS.length) return null;              // bank changed under it
+      return p;
+    } catch (e) { return null; }
+  }
+
+  function clearProgress() {
+    try { localStorage.removeItem(PROGRESS_KEY); } catch (e) {}
+  }
+
+  function offerResume() {
+    var p = readProgress();
+    if (!p) return;
+    var answered = Object.keys(p.answers || {}).length;
+    var box = document.createElement("div");
+    box.className = "callout";
+    box.innerHTML =
+      "<strong>आपका अधूरा टेस्ट मिला।</strong> " + answered + " प्रश्न हल हो चुके थे और " +
+      fmt(p.remaining) + " मिनट बाकी थे। वहीं से जारी रखें?<br>" +
+      '<p style="margin:10px 0 0"><button class="btn" id="resumeBtn" type="button">वहीं से जारी रखें</button> ' +
+      '<button class="btn secondary" id="freshBtn" type="button">नया टेस्ट शुरू करें</button></p>';
+    $("intro").insertBefore(box, $("intro").firstChild);
+    $("resumeBtn").addEventListener("click", function () { startTest(p); });
+    $("freshBtn").addEventListener("click", function () { clearProgress(); startTest(); });
+  }
+
+  function startTest(resumeFrom) {
     started = true;
+    if (resumeFrom) remaining = resumeFrom.remaining;
     $("intro").classList.add("hidden");
     $("quizWrap").classList.remove("hidden");
     renderQuiz();
+
+    if (resumeFrom && resumeFrom.answers) {
+      Object.keys(resumeFrom.answers).forEach(function (i) {
+        var el = document.querySelector('input[name="q' + i + '"][value="' + resumeFrom.answers[i] + '"]');
+        if (el) el.checked = true;
+      });
+    }
+
+    $("quizForm").addEventListener("change", saveProgress);
     $("timer").textContent = fmt(remaining);
+    saveProgress();
+
     ticker = setInterval(function () {
       remaining--;
       $("timer").textContent = fmt(remaining);
+      if (remaining % 5 === 0) saveProgress();
       if (remaining <= 0) { clearInterval(ticker); grade(true); }
     }, 1000);
+
+    /* Backgrounding the tab on a phone can kill the timer without any
+       further events, so write once on the way out. */
+    window.addEventListener("visibilitychange", saveProgress);
+    window.addEventListener("pagehide", saveProgress);
   }
 
   /* ---------- grading ---------- */
   function grade(auto) {
     if (!started) return;
     clearInterval(ticker);
+    clearProgress();   // the test is done; nothing left to resume
 
     var right = 0, wrong = 0, attempted = 0, byTopic = {}, wrongList = [];
 
@@ -286,9 +360,10 @@
       .catch(function () {});
   }
 
-  $("startBtn").addEventListener("click", startTest);
+  $("startBtn").addEventListener("click", function () { startTest(); });
   $("submitBtn").addEventListener("click", function () { grade(false); });
   loadQuestionsFromSheet();
   renderKeyBox();
   renderHistory();
+  offerResume();
 })();
