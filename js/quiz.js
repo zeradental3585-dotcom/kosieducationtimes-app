@@ -53,26 +53,45 @@
       return;
     }
 
-    if (k) {
-      $("whoami").innerHTML = "आपका सिंक कोड: <strong id='mykey'>" + esc(k) + "</strong>";
-      $("keybox").innerHTML =
-        '<button class="btn secondary" id="copyKey" type="button">कोड कॉपी करें</button> ' +
-        '<a class="btn secondary" href="dashboard.html">मेरी प्रगति देखें</a>';
-      $("copyKey").addEventListener("click", function () {
-        var t = $("mykey").textContent;
-        if (navigator.clipboard) navigator.clipboard.writeText(t);
-        this.textContent = "कॉपी हो गया";
-        var b = this;
-        setTimeout(function () { b.textContent = "कोड कॉपी करें"; }, 2000);
-      });
-    } else {
-      $("whoami").textContent = KET.enabled()
-        ? "Google से साइन इन कीजिए — फिर किसी भी फोन पर आपकी प्रगति अपने आप दिखेगी। या बिना साइन इन किए टेस्ट दीजिए, आपको एक सिंक कोड मिल जाएगा।"
-        : "टेस्ट देते ही आपको एक सिंक कोड मिलेगा। उसे लिख लीजिए — किसी भी फोन पर वही कोड डालकर अपनी पूरी प्रगति देख सकते हैं।";
-      $("keybox").innerHTML = '<a class="btn secondary" href="dashboard.html">कोड है? प्रगति देखें</a>';
-    }
+    /* Google is the whole story for almost everybody, so the sync code is
+       not shown at all unless Google is unavailable. showCode is flipped
+       by mountSignIn's unavailable callback - it is never the default. */
+    $("whoami").textContent = "Google से साइन इन कीजिए — फिर किसी भी फोन पर आपकी प्रगति अपने आप दिखेगी। बिना साइन इन किए भी टेस्ट दे सकते हैं, स्कोर इसी फोन में सुरक्षित रहेगा।";
+    $("keybox").innerHTML = '<a class="btn secondary" href="dashboard.html">मेरी प्रगति देखें</a>';
 
-    KET.mountSignIn($("gsi"), function () { renderKeyBox(); renderHistory(); });
+    KET.mountSignIn(
+      $("gsi"),
+      function () { renderKeyBox(); renderHistory(); },
+      function () { showCodeFallback(k); }
+    );
+  }
+
+  /* Only reached when Google Sign-In cannot run here - most often an
+     in-app browser opened from a WhatsApp or Instagram link, where
+     Google refuses OAuth outright. These students would otherwise have
+     no way to carry their scores to another phone, so they get the code
+     and a plain explanation of why they are seeing it. */
+  var codeShown = false;
+  function showCodeFallback(k) {
+    if (codeShown) return;
+    codeShown = true;
+    k = k || KET.getKey();
+    $("gsi").innerHTML = "";
+    $("whoami").innerHTML = k
+      ? "आपका सिंक कोड: <strong id='mykey'>" + esc(k) + "</strong>"
+      : "इस ब्राउज़र में Google साइन इन नहीं चलता। टेस्ट देते ही आपको एक सिंक कोड मिलेगा — उसे लिख लीजिए।";
+    $("keybox").innerHTML =
+      (k ? '<button class="btn secondary" id="copyKey" type="button">कोड कॉपी करें</button> ' : "") +
+      '<a class="btn secondary" href="dashboard.html">मेरी प्रगति देखें</a>' +
+      '<p class="note" style="width:100%;margin:8px 0 0">आप किसी ऐप के अंदर वाले ब्राउज़र में हैं, जहाँ Google साइन इन काम नहीं करता — यह Google की अपनी पाबंदी है। ' +
+      'इस कोड से आपकी प्रगति सुरक्षित रहेगी। चाहें तो यह पेज Chrome में खोलकर Google से साइन इन कर लीजिए।</p>';
+    var c = $("copyKey");
+    if (c) c.addEventListener("click", function () {
+      if (navigator.clipboard) navigator.clipboard.writeText($("mykey").textContent);
+      this.textContent = "कॉपी हो गया";
+      var b = this;
+      setTimeout(function () { b.textContent = "कोड कॉपी करें"; }, 2000);
+    });
   }
 
   /* ---------- render ---------- */
@@ -170,13 +189,25 @@
     var key = KET.ensureKey();
     var prof = KET.profile();
 
-    var idBlock = prof
-      ? '<div class="mock-config"><strong>' + esc(prof.name || "आपका अकाउंट") + ' — प्रगति सेव हो गई</strong><br>' +
+    /* Signed in: say so. Not signed in but Google works here: invite them
+       to sign in, and do not mention a code at all. Google unavailable:
+       the code is the only thing that will save their progress, so give
+       it to them plainly. */
+    var idBlock;
+    if (prof) {
+      idBlock = '<div class="mock-config"><strong>' + esc(prof.name || "आपका अकाउंट") + ' — प्रगति सेव हो गई</strong><br>' +
         'आप जिस भी फोन पर इसी Google अकाउंट से साइन इन करेंगे, यह रिकॉर्ड वहाँ दिखेगा। ' +
-        '<a href="dashboard.html">मेरी प्रगति देखें →</a></div>'
-      : '<div class="mock-config"><strong>आपका सिंक कोड: ' + esc(key) + '</strong><br>' +
+        '<a href="dashboard.html">मेरी प्रगति देखें →</a></div>';
+    } else if (codeShown) {
+      idBlock = '<div class="mock-config"><strong>आपका सिंक कोड: ' + esc(key) + '</strong><br>' +
         'इसे लिख लीजिए। किसी भी दूसरे फोन पर यही कोड डालकर आप अपनी पूरी प्रगति देख सकते हैं — न कोई अकाउंट चाहिए, न पासवर्ड। ' +
         '<a href="dashboard.html">मेरी प्रगति देखें →</a></div>';
+    } else {
+      idBlock = '<div class="mock-config"><strong>यह स्कोर इसी फोन में सेव हो गया है।</strong><br>' +
+        'ऊपर Google से साइन इन कर लीजिए — फिर यह रिकॉर्ड आपके अकाउंट से जुड़ जाएगा और किसी भी दूसरे फोन पर दिखने लगेगा। ' +
+        'अभी तक दिए गए टेस्ट भी उसी में जुड़ जाएँगे। ' +
+        '<a href="dashboard.html">मेरी प्रगति देखें →</a></div>';
+    }
 
     $("resultWrap").innerHTML =
       '<div class="scorecard"><h2>आपका स्कोर</h2>' +

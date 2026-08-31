@@ -74,6 +74,32 @@
     }
   }
 
+  /**
+   * Is this an embedded in-app browser?
+   *
+   * Google refuses OAuth inside embedded webviews and answers with
+   * disallowed_useragent. It has done since 2021, enforced since 2023,
+   * and there is nothing we can set to change it. That matters here more
+   * than it would elsewhere: this site is shared on WhatsApp, and a link
+   * tapped inside a social app can open in exactly this kind of browser.
+   * For those students the Google button cannot work, so they are the
+   * ones who still need a sync code.
+   *
+   * Detection is best-effort - user agents lie and change. It is only
+   * used to decide whether to OFFER the code, never to withhold
+   * anything, so a false positive costs a visible fallback and a false
+   * negative is caught by the failure path instead.
+   */
+  function inAppBrowser() {
+    var ua = navigator.userAgent || "";
+    if (/(FBAN|FBAV|FB_IAB|Instagram|Line\/|Twitter|MicroMessenger|Snapchat|Pinterest|WhatsApp)/i.test(ua)) return true;
+    // Android WebView: "; wv)" or a Version/x.y token alongside Chrome
+    if (/\bwv\b/.test(ua) && /Android/i.test(ua)) return true;
+    // iOS in-app: WebKit without Safari
+    if (/iPhone|iPad|iPod/i.test(ua) && !/Safari/i.test(ua)) return true;
+    return false;
+  }
+
   /* Exchange a Google ID token for this account's sync code.
      Any code already on this device is sent along, so a student who took
      tests anonymously and then signs in keeps that history instead of
@@ -111,17 +137,33 @@
    * has come back. Returns false when sign-in is not configured, which is
    * the caller's cue to show the sync-code UI alone.
    */
-  function mountSignIn(el, onChange) {
-    if (!CLIENT_ID || !el) return false;
+  function mountSignIn(el, onChange, onUnavailable) {
+    if (!el) return false;
+
+    /* Tell the caller straight away when Google cannot possibly work, so
+       the sync code can take its place rather than leaving the student
+       with a button that will only ever show them a Google error page. */
+    if (!CLIENT_ID || inAppBrowser()) {
+      if (onUnavailable) onUnavailable(CLIENT_ID ? "inapp" : "unconfigured");
+      return false;
+    }
+
     loadGsi(function (err) {
-      if (err || !window.google || !google.accounts || !google.accounts.id) return;
+      if (err || !window.google || !google.accounts || !google.accounts.id) {
+        if (onUnavailable) onUnavailable("blocked");
+        return;
+      }
       google.accounts.id.initialize({
         client_id: CLIENT_ID,
         callback: function (res) {
           var p = peek(res.credential) || {};
           el.innerHTML = '<span class="note">जोड़ा जा रहा है…</span>';
           link(res.credential, function (e2) {
-            if (e2) { el.innerHTML = '<span class="note">कनेक्ट नहीं हो सका। सिंक कोड से आगे बढ़िए।</span>'; return; }
+            if (e2) {
+              el.innerHTML = '<span class="note">कनेक्ट नहीं हो सका।</span>';
+              if (onUnavailable) onUnavailable("linkfailed");
+              return;
+            }
             setProfile({ name: p.name || "", picture: p.picture || "", at: Date.now() });
             if (onChange) onChange();
           });
@@ -146,6 +188,7 @@
     getKey: getKey, setKey: setKey, ensureKey: ensureKey, newKey: newKey,
     isValidCode: isValidCode,
     profile: profile, signOut: signOut,
-    mountSignIn: mountSignIn
+    mountSignIn: mountSignIn,
+    inAppBrowser: inAppBrowser
   };
 })();
