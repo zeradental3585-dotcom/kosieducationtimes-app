@@ -49,20 +49,26 @@ nav.site a:hover { color: var(--ink); }
     align-items: stretch;
     gap: 0;
   }
-  /* The wordmark leads on mobile. It is the only branding a student sees
-     on a phone, so it gets the width rather than sharing a line with the
-     nav. clamp keeps it as large as will fit: the text measures roughly
-     9.3px of width per 1px of font-size, so 32px needs 298px and still
-     clears a 320px screen's 280px of usable width. */
+  /* The wordmark leads on mobile: centred, and as large as one line will
+     take. The text measures about 9.3px of width per 1px of font-size,
+     and a 320px screen leaves 280px between the gutters, so ~30px is the
+     hard ceiling there - the clamp floor of 28px sits just under it with
+     18px to spare, and larger screens scale up to a 38px cap. */
   .logo {
-    font-size: clamp(26px, 7.5vw, 32px);
+    font-size: clamp(28px, 8.8vw, 38px);
     font-weight: 800;
-    letter-spacing: -.02em;
-    line-height: 1.1;
-    padding-bottom: 12px;
+    letter-spacing: -.022em;
+    line-height: 1.05;
+    text-align: center;
+    padding-bottom: 14px;
   }
+  /* Centred to sit under the centred wordmark. "safe" matters: on a
+     narrow screen the row overflows and scrolls, and plain centring
+     would push the first link off the left edge where it cannot be
+     scrolled back to. safe centre falls back to flex-start in that case. */
   nav.site {
     display: flex;
+    justify-content: safe center;
     gap: 22px;
     overflow-x: auto;
     -webkit-overflow-scrolling: touch;
