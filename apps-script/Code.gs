@@ -31,6 +31,8 @@ var TESTS = [
     url: 'https://www.kosieducationtimes.com/mock/bihar-police-constable-test-2.html' },
   { id: 'bihar-police-full-1',
     url: 'https://www.kosieducationtimes.com/mock/bihar-police-full-test-1.html' },
+  { id: 'bihar-police-full-2',
+    url: 'https://www.kosieducationtimes.com/mock/bihar-police-full-test-2.html' },
   { id: 'ssc-gd-constable-1',
     url: 'https://www.kosieducationtimes.com/mock/ssc-gd-constable-test.html' },
   { id: 'ssc-gd-full-1',
