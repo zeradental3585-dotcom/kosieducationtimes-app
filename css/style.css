@@ -306,6 +306,20 @@ h4 { font-size: 16px; margin: 20px 0 8px; color: var(--ink); }
   #authbar .who { width:100%; }
   #authbar #keybox input { flex:1 1 140px; min-width:0; width:auto !important; }
 }
+/* Count line under the hub intro. Reads as a claim about the whole
+   section, so it should look like a fact, not a heading. */
+.lead-stats {
+  display: inline-block;
+  font-size: 15px;
+  color: var(--muted);
+  background: #fff7ed;
+  border: 1px solid #fed7aa;
+  border-radius: 999px;
+  padding: 8px 16px;
+  margin: 0 0 18px;
+}
+.lead-stats strong { color: var(--ink); }
+
 /* --- question palette, for full-length papers --- */
 #palette { margin: 0 0 18px; }
 #palette summary { cursor: pointer; font-weight: 600; padding: 6px 0; }
