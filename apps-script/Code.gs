@@ -32,7 +32,9 @@ var TESTS = [
   { id: 'bihar-police-full-1',
     url: 'https://www.kosieducationtimes.com/mock/bihar-police-full-test-1.html' },
   { id: 'ssc-gd-constable-1',
-    url: 'https://www.kosieducationtimes.com/mock/ssc-gd-constable-test.html' }
+    url: 'https://www.kosieducationtimes.com/mock/ssc-gd-constable-test.html' },
+  { id: 'ssc-gd-full-1',
+    url: 'https://www.kosieducationtimes.com/mock/ssc-gd-full-test-1.html' }
 ];
 
 /* Must match GOOGLE_CLIENT_ID in js/auth.js. Empty disables Google Sign-In
