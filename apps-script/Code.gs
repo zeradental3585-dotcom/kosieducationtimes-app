@@ -188,6 +188,59 @@ function linkGoogle_(credential, existingKey) {
   }
 }
 
+/* Below this many students, a percentile is noise dressed up as a fact.
+   Every portal shows one from day one; we would rather say we cannot. */
+var MIN_SAMPLE = 30;
+
+/**
+ * How one score compares with everybody else's on the same test.
+ *
+ * Counts each student once, using their best attempt. Without that, a
+ * student who takes a test twenty times would be twenty of the numbers
+ * they are being measured against, and anyone who practised hard would
+ * push everyone else's percentile down by being diligent.
+ *
+ * Returns the sample size whether or not it is big enough, because the
+ * honest answer to "how did I do against others" is sometimes "only six
+ * people have taken this, so there is nothing to compare with yet".
+ */
+function statsFor_(testId, pct) {
+  var rows = sheet_('attempts').getDataRange().getValues();
+  var best = {};
+  for (var i = 1; i < rows.length; i++) {
+    if (String(rows[i][2]) !== testId) continue;
+    var user = String(rows[i][1]);
+    var p = Number(rows[i][5]);
+    if (!user || isNaN(p)) continue;
+    if (!(user in best) || p > best[user]) best[user] = p;
+  }
+
+  var vals = [];
+  for (var u in best) vals.push(best[u]);
+  var n = vals.length;
+  if (!n) return { ok: true, n: 0, enough: false };
+
+  var sum = 0, below = 0, equal = 0;
+  for (var j = 0; j < n; j++) {
+    sum += vals[j];
+    if (vals[j] < pct) below++;
+    else if (vals[j] === pct) equal++;
+  }
+  vals.sort(function (a, b) { return a - b; });
+
+  return {
+    ok: true,
+    n: n,
+    enough: n >= MIN_SAMPLE,
+    mean: Math.round(sum / n),
+    median: n % 2 ? vals[(n - 1) / 2] : Math.round((vals[n / 2 - 1] + vals[n / 2]) / 2),
+    best: vals[n - 1],
+    /* Mid-rank: half the ties count as below. Avoids telling someone on
+       the modal score that they beat nobody. */
+    better: Math.round(((below + equal / 2) / n) * 100)
+  };
+}
+
 function readAttempts_(key) {
   var rows = sheet_('attempts').getDataRange().getValues();
   var mine = [];
@@ -215,6 +268,16 @@ function doGet(e) {
     var key = validKey_(p.key);
     if (!key) return json_({ ok: false, error: 'bad key' });
     return json_({ ok: true, attempts: readAttempts_(key) });
+  }
+
+  /* GET ?action=stats&test=<id>&pct=<0-100> - no key needed, and none is
+     accepted: this returns aggregate numbers about a test, never anything
+     about a particular student. */
+  if (action === 'stats') {
+    var t = String(p.test || '').trim();
+    if (!t) return json_({ ok: false, error: 'no test' });
+    var score = Math.max(0, Math.min(100, Math.round(Number(p.pct) || 0)));
+    return json_(statsFor_(t, score));
   }
 
   var testId = (p.test || '').trim();

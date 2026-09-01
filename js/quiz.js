@@ -296,6 +296,7 @@
       '<p>नीचे हर प्रश्न के साथ सही उत्तर और उसकी व्याख्या जुड़ गई है।</p>';
     $("resultWrap").classList.remove("hidden");
     $("resultWrap").scrollIntoView({ behavior: "smooth" });
+    showComparison(pct);
 
     saveAttempt({
       test: TEST_ID, date: new Date().toISOString(),
@@ -304,6 +305,48 @@
       topics: JSON.stringify(weak.map(function (w) { return [w.t, w.right, w.total]; }))
     });
     renderKeyBox();
+  }
+
+  /* ---------- how this score compares with everybody else's ----------
+     Every mock test portal shows a percentile from the first attempt
+     onward, when the sample is four people and the number means nothing.
+     This one states the sample size and refuses to give a percentile
+     until there are enough students to support one. Saying "not yet" is
+     the whole point: a student deciding they are in the top 10% off six
+     data points will stop preparing. */
+  function showComparison(pct) {
+    if (!KET.ENDPOINT) return;
+    var slot = document.createElement("div");
+    slot.id = "compareSlot";
+    $("resultWrap").appendChild(slot);
+
+    fetch(KET.ENDPOINT + "?action=stats&test=" + encodeURIComponent(TEST_ID) + "&pct=" + pct)
+      .then(function (r) { return r.json(); })
+      .then(function (s) {
+        if (!s || !s.ok || !s.n) return;                 // nothing to say; say nothing
+
+        if (!s.enough) {
+          slot.innerHTML =
+            '<h2>दूसरे छात्रों से तुलना</h2>' +
+            '<p class="note">यह टेस्ट अब तक <strong>' + s.n + '</strong> छात्रों ने दिया है। ' +
+            'इतने कम आँकड़ों पर प्रतिशत निकालना गलत तस्वीर देगा, इसलिए हम अभी तुलना नहीं दिखा रहे — ' +
+            'जैसे ही पर्याप्त छात्र यह टेस्ट दे देंगे, यहीं दिख जाएगा।</p>';
+          return;
+        }
+
+        var verdict = s.better >= 75 ? 'यह मजबूत स्थिति है। अब कमजोर विषय पर काम कीजिए, बाकी पहले से ठीक है।'
+                    : s.better >= 50 ? 'आप बीच से ऊपर हैं। नीचे दी गई विषयवार तालिका में सबसे कमजोर विषय उठाइए।'
+                    : 'अभी बहुत जगह बाकी है — और यही असली फायदा है, क्योंकि सुधार सबसे तेज यहीं से होता है।';
+
+        slot.innerHTML =
+          '<h2>दूसरे छात्रों से तुलना</h2>' +
+          '<p>इस टेस्ट को देने वाले <strong>' + s.n + '</strong> छात्रों में से <strong>' + s.better + '%</strong> ' +
+          'से आपका स्कोर बेहतर है। औसत स्कोर <strong>' + s.mean + '%</strong> है और सबसे ज्यादा <strong>' + s.best + '%</strong>।</p>' +
+          '<p>' + verdict + '</p>' +
+          '<p class="note">हर छात्र को एक बार गिना जाता है, उसके सबसे अच्छे प्रयास के आधार पर — ' +
+          'ताकि बार-बार टेस्ट देने वाला किसी और की तुलना को न बिगाड़े।</p>';
+      })
+      .catch(function () { /* comparison is a bonus, never a blocker */ });
   }
 
   /* ---------- storage ---------- */
