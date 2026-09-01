@@ -109,6 +109,54 @@
     $("quizForm").innerHTML = html;
   }
 
+  /* ---------- question palette ----------
+     A 25-question test scrolls fine. A 100-question one does not: without
+     a map you cannot tell what you have left blank, and on a paper with
+     no negative marking a blank is a thrown-away mark. The grid is only
+     drawn for long papers, where it earns its space. */
+  var PALETTE_FROM = 30;
+
+  function answeredCount() {
+    var n = 0;
+    for (var i = 0; i < QUESTIONS.length; i++) {
+      if (document.querySelector('input[name="q' + i + '"]:checked')) n++;
+    }
+    return n;
+  }
+
+  function buildPalette() {
+    var wrap = $("palette");
+    if (!wrap) return;
+    if (QUESTIONS.length < PALETTE_FROM) { wrap.innerHTML = ""; return; }
+    var cells = "";
+    for (var i = 0; i < QUESTIONS.length; i++) {
+      cells += '<button type="button" class="pcell" data-q="' + i + '">' + (i + 1) + '</button>';
+    }
+    wrap.innerHTML =
+      '<details open><summary>प्रश्न सूची — कौन से बाकी हैं</summary>' +
+      '<div class="pgrid">' + cells + '</div>' +
+      '<p class="note">भरे हुए प्रश्न रंगीन दिखते हैं। किसी नंबर पर टैप कीजिए, सीधे वहीं पहुँच जाएँगे।</p></details>';
+    wrap.addEventListener("click", function (e) {
+      var b = e.target.closest ? e.target.closest(".pcell") : null;
+      if (!b) return;
+      var el = $("q" + b.getAttribute("data-q"));
+      if (el) el.scrollIntoView({ behavior: "smooth", block: "center" });
+    });
+  }
+
+  function refreshProgressUi() {
+    var done = answeredCount(), total = QUESTIONS.length;
+    var c = $("answered");
+    if (c) c.textContent = done + " / " + total;
+    var wrap = $("palette");
+    if (!wrap) return;
+    var cells = wrap.querySelectorAll(".pcell");
+    for (var i = 0; i < cells.length; i++) {
+      var on = !!document.querySelector('input[name="q' + i + '"]:checked');
+      cells[i].className = on ? "pcell done" : "pcell";
+    }
+  }
+
   function fmt(s) {
     var m = Math.floor(s / 60), r = s % 60;
     return (m < 10 ? "0" : "") + m + ":" + (r < 10 ? "0" : "") + r;
@@ -183,9 +231,14 @@
       });
     }
 
-    $("quizForm").addEventListener("change", saveProgress);
+    buildPalette();
+    $("quizForm").addEventListener("change", function () {
+      saveProgress();
+      refreshProgressUi();
+    });
     $("timer").textContent = fmt(remaining);
     saveProgress();
+    refreshProgressUi();
 
     ticker = setInterval(function () {
       remaining--;
@@ -205,6 +258,8 @@
     if (!started) return;
     clearInterval(ticker);
     clearProgress();   // the test is done; nothing left to resume
+    var w = $("blankWarn"); if (w) w.remove();
+    var pal = $("palette"); if (pal) pal.innerHTML = "";
 
     var right = 0, wrong = 0, attempted = 0, byTopic = {}, wrongList = [];
 
@@ -404,7 +459,43 @@
   }
 
   $("startBtn").addEventListener("click", function () { startTest(); });
-  $("submitBtn").addEventListener("click", function () { grade(false); });
+
+  /* Submitting with blanks is worth warning about, and the warning is not
+     the same in both directions. With no negative marking a blank is a
+     mark thrown away for nothing. With negative marking, leaving a
+     genuinely unknown question alone is the correct play, so the wording
+     must not push them into guessing. An inline panel rather than
+     window.confirm, which some in-app browsers suppress. */
+  var confirmed = false;
+  $("submitBtn").addEventListener("click", function () {
+    var blanks = QUESTIONS.length - answeredCount();
+    if (blanks === 0 || confirmed) { grade(false); return; }
+    confirmed = true;
+    var warn = document.createElement("div");
+    warn.className = "callout";
+    warn.id = "blankWarn";
+    warn.innerHTML =
+      "<strong>" + blanks + " प्रश्न अभी खाली हैं।</strong> " +
+      (NEGATIVE > 0
+        ? "इस परीक्षा में हर गलत उत्तर पर " + num(NEGATIVE) + " अंक कटते हैं, इसलिए जो बिल्कुल नहीं आता उसे छोड़ना ठीक है। " +
+          "पर जिनमें दो विकल्प कट रहे हों, उन्हें भरना फायदे का है।"
+        : "इस परीक्षा में नेगेटिव मार्किंग नहीं है — खाली छोड़ा गया हर प्रश्न बिना वजह गँवाया गया अंक है। " +
+          "ऊपर सूची में बचे हुए नंबर दिख रहे हैं, उन्हें भर लीजिए।") +
+      '<p style="margin:10px 0 0"><button class="btn secondary" id="goBack" type="button">वापस जाकर भरूँ</button> ' +
+      '<button class="btn" id="submitAnyway" type="button">फिर भी जमा करें</button></p>';
+    $("quizWrap").insertBefore(warn, $("submitBtn").parentNode);
+    warn.scrollIntoView({ behavior: "smooth", block: "center" });
+    $("submitAnyway").addEventListener("click", function () { grade(false); });
+    $("goBack").addEventListener("click", function () {
+      warn.remove();
+      confirmed = false;
+      var first = -1;
+      for (var i = 0; i < QUESTIONS.length; i++) {
+        if (!document.querySelector('input[name="q' + i + '"]:checked')) { first = i; break; }
+      }
+      if (first >= 0) $("q" + first).scrollIntoView({ behavior: "smooth", block: "center" });
+    });
+  });
   loadQuestionsFromSheet();
   renderKeyBox();
   renderHistory();

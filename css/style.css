@@ -306,6 +306,34 @@ h4 { font-size: 16px; margin: 20px 0 8px; color: var(--ink); }
   #authbar .who { width:100%; }
   #authbar #keybox input { flex:1 1 140px; min-width:0; width:auto !important; }
 }
+/* --- question palette, for full-length papers --- */
+#palette { margin: 0 0 18px; }
+#palette summary { cursor: pointer; font-weight: 600; padding: 6px 0; }
+#palette .pgrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(42px, 1fr));
+  gap: 6px;
+  margin: 12px 0 0;
+}
+#palette .pcell {
+  min-height: 42px;
+  border: 1px solid var(--border);
+  background: #fff;
+  border-radius: 6px;
+  font: inherit;
+  font-size: 14px;
+  cursor: pointer;
+  color: var(--muted);
+}
+#palette .pcell.done {
+  background: var(--saffron);
+  border-color: var(--saffron);
+  color: #fff;
+  font-weight: 700;
+}
+.answered-count { font-size: 14px; color: var(--muted); }
+.answered-count strong { color: var(--ink); }
+
 .q { border:1px solid var(--border); border-radius:10px; padding:18px; margin:0 0 16px; }
 .q .qnum { font-size:12px; font-weight:700; letter-spacing:.04em; text-transform:uppercase; color:var(--saffron); }
 .q .qtopic { font-size:12px; color:var(--muted); float:right; }
