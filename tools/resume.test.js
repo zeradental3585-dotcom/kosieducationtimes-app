@@ -59,7 +59,10 @@ console.log('3. resume restores state     ->', restored && clock==='15:00' ? 'PA
 
 // --- 4. finishing clears it, so it is not offered again
 b2.doc.getElementById('submitBtn').click();
-console.log('4. cleared after submit      ->', !store['ket_progress_t1'] ? 'PASS' : 'FAIL still stored');
+const guard=b2.doc.getElementById('blankWarn');
+console.log('4a. blanks warned before submit ->', guard ? 'PASS ('+guard.textContent.replace(/\s+/g,' ').trim().slice(0,46)+'…)' : 'FAIL no guard');
+b2.doc.getElementById('submitAnyway').click();
+console.log('4b. cleared after real submit   ->', !store['ket_progress_t1'] ? 'PASS' : 'FAIL still stored');
 let b4=boot(store);
 console.log('   not offered again         ->', !b4.doc.querySelector('#resumeBtn') ? 'PASS' : 'FAIL');
 

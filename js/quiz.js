@@ -483,7 +483,12 @@
           "ऊपर सूची में बचे हुए नंबर दिख रहे हैं, उन्हें भर लीजिए।") +
       '<p style="margin:10px 0 0"><button class="btn secondary" id="goBack" type="button">वापस जाकर भरूँ</button> ' +
       '<button class="btn" id="submitAnyway" type="button">फिर भी जमा करें</button></p>';
-    $("quizWrap").insertBefore(warn, $("submitBtn").parentNode);
+    /* Insert relative to the button inside its own parent. Anchoring to
+       quizWrap assumed the button was wrapped in a <p>; on any page that
+       put it directly in quizWrap, insertBefore would throw and the
+       student could not submit at all. */
+    var btn = $("submitBtn");
+    btn.parentNode.insertBefore(warn, btn);
     warn.scrollIntoView({ behavior: "smooth", block: "center" });
     $("submitAnyway").addEventListener("click", function () { grade(false); });
     $("goBack").addEventListener("click", function () {
