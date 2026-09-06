@@ -16,7 +16,10 @@ def bank(path, s):
     m = re.search(r'questions: (\[[\s\S]*?\])\n\};', s)
     return json.loads(m.group(1)) if m else None
 
-for f in sorted(glob.glob('**/*.html', recursive=True)):
+SITE_PAGES = [p for p in sorted(glob.glob('**/*.html', recursive=True))
+              if not p.startswith('tools/')]   # fixtures are not site pages
+
+for f in SITE_PAGES:
     s = open(f, encoding='utf-8').read()
     try:
         html5lib.parse(s)
@@ -77,7 +80,7 @@ for f in sorted(glob.glob('**/*.html', recursive=True)):
 
 sm = open('sitemap.xml', encoding='utf-8').read()
 urls = {u.split('kosieducationtimes.com/')[-1] for u in re.findall(r'<loc>(.*?)</loc>', sm)}
-pages = set(glob.glob('**/*.html', recursive=True))
+pages = set(SITE_PAGES)
 noindex = {p for p in pages if 'noindex' in open(p, encoding='utf-8').read()}
 for p in noindex & urls:
     fails.append((p, 'noindex page in sitemap', ''))
