@@ -41,10 +41,15 @@ for f in sorted(glob.glob('**/*.html', recursive=True)):
     if c and o and c.group(1) != o.group(1):
         fails.append((f, 'canonical != og:url', c.group(1)))
 
-    fq = len(re.findall(r'"@type"\s*:\s*"Question"', s))
-    h3 = len(re.findall(r'<h3[ >]', s))
-    if fq and fq != h3:
-        fails.append((f, 'FAQ schema vs visible h3', '%d vs %d' % (fq, h3)))
+    fq_names = re.findall(r'"@type"\s*:\s*"Question",\s*"name": "([^"]+)"', s)
+    h3 = [re.sub(r'<[^>]+>', '', x).strip() for x in re.findall(r'<h3[^>]*>(.*?)</h3>', s, re.S)]
+    if fq_names and len(fq_names) != len(h3):
+        fails.append((f, 'FAQ schema vs visible h3 count', '%d vs %d' % (len(fq_names), len(h3))))
+    # Counting alone let a Hindi rewrite ship with an English FAQ block still
+    # attached: five questions, five headings, none of them the same text.
+    for q in fq_names:
+        if q not in h3:
+            fails.append((f, 'FAQ question not visible on page', q[:44]))
 
     qs = bank(f, s)
     if qs is not None:
