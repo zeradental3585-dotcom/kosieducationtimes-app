@@ -7,7 +7,7 @@ title and description. The full-length paper shipped as
 "Full Test 1 (100 प्रश्न): 25 मूल प्रश्न" - the tag line contradicting
 the headline, in the one place Google and WhatsApp both read.
 """
-import glob, json, os, re, sys, collections
+import glob, subprocess, json, os, re, sys, collections
 import html5lib
 
 fails = []
@@ -84,6 +84,16 @@ pages = set(SITE_PAGES)
 noindex = {p for p in pages if 'noindex' in open(p, encoding='utf-8').read()}
 for p in noindex & urls:
     fails.append((p, 'noindex page in sitemap', ''))
+
+# A lastmod older than the page's real last edit tells Google not to
+# bother refetching - which, on a site Search Console is already
+# declining to crawl, quietly cancels every content fix we make. It had
+# drifted on 27 of 41 pages before anything checked it.
+_sm = subprocess.run([sys.executable, 'tools/sync_sitemap.py', '--check'],
+                     capture_output=True, text=True)
+if _sm.returncode != 0:
+    fails.append(('sitemap.xml', 'lastmod out of date',
+                  'run tools/sync_sitemap.py'))
 
 total = sum(len(bank(f, open(f, encoding='utf-8').read()) or []) for f in glob.glob('mock/*.html'))
 print('pages: %d | sitemap: %d | questions: %d' % (len(pages), len(urls), total))
