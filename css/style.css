@@ -368,3 +368,29 @@ h4 { font-size: 16px; margin: 20px 0 8px; color: var(--ink); }
 .scorecard .sub { color:var(--muted); font-size:15px; margin:4px 0 0; }
 #timer { font-variant-numeric:tabular-nums; font-weight:700; }
 .hidden { display:none; }
+
+/* Static question review on mock pages.
+   The questions used to live only inside window.KET_TEST, so a 100-question
+   paper served ~500 words of real HTML and Google declined to index three of
+   them. They are written into the page now; this keeps that block readable
+   without letting it dominate the page above the test itself. */
+#review { margin-top: 2.5rem; }
+#review details.review { border: 1px solid #ddd; border-radius: 6px; padding: 0; }
+#review details.review > summary {
+  cursor: pointer; padding: 0.9rem 1rem; font-weight: 600;
+  background: #f6f7f9; border-radius: 6px; min-height: 44px;
+}
+#review details.review[open] > summary { border-bottom: 1px solid #ddd; border-radius: 6px 6px 0 0; }
+#review .qrev { padding: 1rem 1rem 0.2rem; border-top: 1px solid #eee; }
+#review .qrev:first-of-type { border-top: 0; }
+#review .qrev h3 { margin: 0 0 0.4rem; font-size: 1rem; }
+#review .qrev .topic { font-weight: 400; color: #666; }
+#review .qrev .qtext { margin: 0 0 0.5rem; }
+#review .qrev ol { margin: 0 0 0.6rem 1.2rem; padding: 0; }
+#review .qrev li { margin: 0.15rem 0; }
+#review .qrev .ans { margin: 0 0 0.35rem; }
+#review .qrev .why { margin: 0 0 0.9rem; color: #333; }
+@media (max-width: 700px) {
+  #review .qrev { padding: 0.9rem 0.75rem 0.2rem; }
+  #review details.review > summary { padding: 0.9rem 0.75rem; }
+}

@@ -89,6 +89,15 @@ for p in noindex & urls:
 # bother refetching - which, on a site Search Console is already
 # declining to crawl, quietly cancels every content fix we make. It had
 # drifted on 27 of 41 pages before anything checked it.
+# The mock questions live in window.KET_TEST; rendering them into the page
+# as well is what made three full-length papers substantial enough to index.
+# If the bank changes and the review block does not, the page starts lying.
+_rv = subprocess.run([sys.executable, 'tools/render_review.py', '--check'],
+                     capture_output=True, text=True)
+if _rv.returncode != 0:
+    fails.append(('mock/*.html', 'review block stale',
+                  'run tools/render_review.py'))
+
 _sm = subprocess.run([sys.executable, 'tools/sync_sitemap.py', '--check'],
                      capture_output=True, text=True)
 if _sm.returncode != 0:
