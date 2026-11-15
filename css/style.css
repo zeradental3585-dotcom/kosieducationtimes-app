@@ -394,3 +394,24 @@ h4 { font-size: 16px; margin: 20px 0 8px; color: var(--ink); }
   #review .qrev { padding: 0.9rem 0.75rem 0.2rem; }
   #review details.review > summary { padding: 0.9rem 0.75rem; }
 }
+
+/* Share block on a finished test.
+   The students already on the site are its only distribution: search
+   sends almost no one, and every external link points back at sites the
+   owner runs. A finished score is the one moment a student has something
+   worth passing on, so the ask belongs here and nowhere else. */
+.sharecard {
+  margin: 1.5rem 0; padding: 1rem 1.1rem;
+  border: 1px solid #cfe6d4; border-radius: 8px; background: #f3faf5;
+}
+.sharecard strong { display: block; margin-bottom: 0.3rem; font-size: 1.05rem; }
+.sharecard p { margin: 0.4rem 0 0; }
+.sharecard .sharebtns { display: flex; flex-wrap: wrap; gap: 0.6rem; align-items: center; margin-top: 0.9rem; }
+.btn.wa { background: #25D366; border-color: #25D366; color: #06331a; font-weight: 600; }
+.btn.wa:hover, .btn.wa:focus { background: #1eb959; border-color: #1eb959; }
+.sharecard .copied { color: #1b7a3f; font-weight: 600; }
+@media (max-width: 700px) {
+  .sharecard .sharebtns { flex-direction: column; align-items: stretch; }
+  .sharecard .sharebtns .btn { width: 100%; text-align: center; min-height: 44px; line-height: 2.2; }
+  .sharecard .copied { text-align: center; }
+}

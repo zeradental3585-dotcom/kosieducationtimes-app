@@ -254,6 +254,78 @@
   }
 
   /* ---------- grading ---------- */
+
+  /* ---------------------------------------------------------------
+     Sharing a finished test.
+
+     GA4 shows the mock tests are the most-read thing on the site after
+     the homepage, and Search Console shows almost nobody arrives from
+     search. The students who do get here are the only distribution the
+     site has, and until now a finished test gave them nothing to pass
+     on. WhatsApp is where this audience actually shares, so that is the
+     one button.
+
+     Nothing is sent by us. The link only opens WhatsApp with text
+     already typed; the student picks the recipient and presses send, or
+     does not. No score leaves the page unless they choose that.
+  --------------------------------------------------------------- */
+  function testName() {
+    var h = document.querySelector("h1");
+    return h ? h.textContent.trim() : "Mock Test";
+  }
+
+  function shareBlock(scored, maxMarks, pct) {
+    var url  = location.href.split("#")[0].split("?")[0];
+    var text =
+      "मैंने KosiEducationTimes पर " + testName() + " में " +
+      num(scored) + "/" + num(maxMarks) + " (" + pct + "%) स्कोर किया।\n\n" +
+      "तुम भी आजमाकर देखो — नि:शुल्क है, सारे प्रश्न मूल हैं और हर उत्तर की व्याख्या साथ मिलती है:\n" + url;
+    return '<div class="sharecard">' +
+      '<strong>अपना स्कोर दोस्तों को भेजिए</strong>' +
+      '<p>जिस दोस्त के साथ तैयारी कर रहे हैं, उसे यही टेस्ट भेजिए और स्कोर मिलाइए। ' +
+      'पढ़ाई में सबसे ज्यादा फर्क यही डालता है।</p>' +
+      '<p class="sharebtns">' +
+      '<a class="btn wa" id="shareWa" target="_blank" rel="noopener noreferrer" ' +
+      'href="https://wa.me/?text=' + encodeURIComponent(text) + '">WhatsApp पर भेजें</a> ' +
+      '<button class="btn secondary" id="copyLink" type="button">लिंक कॉपी करें</button>' +
+      '<span class="copied" id="copiedMsg" hidden>कॉपी हो गया</span>' +
+      '</p></div>';
+  }
+
+  function wireShare() {
+    var btn = $("copyLink");
+    if (!btn) return;
+    btn.addEventListener("click", function () {
+      var url = location.href.split("#")[0].split("?")[0];
+      var done = function () {
+        var m = $("copiedMsg");
+        if (m) { m.hidden = false; setTimeout(function () { m.hidden = true; }, 2500); }
+      };
+      // clipboard API needs a secure context and can be refused; the
+      // textarea fallback is what keeps this working on older phones.
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(url).then(done, function () { fallback(url, done); });
+      } else {
+        fallback(url, done);
+      }
+    });
+  }
+
+  function fallback(url, done) {
+    try {
+      var t = document.createElement("textarea");
+      t.value = url;
+      t.setAttribute("readonly", "");
+      t.style.position = "fixed";
+      t.style.opacity = "0";
+      document.body.appendChild(t);
+      t.select();
+      document.execCommand("copy");
+      document.body.removeChild(t);
+      done();
+    } catch (e) { /* copying is a convenience; never break the result page over it */ }
+  }
+
   function grade(auto) {
     if (!started) return;
     clearInterval(ticker);
@@ -348,8 +420,10 @@
       '<h2>विषयवार प्रदर्शन</h2>' +
       '<table class="facts"><thead><tr><th>विषय</th><th>सही</th><th>प्रतिशत</th></tr></thead><tbody>' + rows + '</tbody></table>' +
       advice +
+      shareBlock(scored, maxMarks, pct) +
       '<p>नीचे हर प्रश्न के साथ सही उत्तर और उसकी व्याख्या जुड़ गई है।</p>';
     $("resultWrap").classList.remove("hidden");
+    wireShare();
     $("resultWrap").scrollIntoView({ behavior: "smooth" });
     showComparison(pct);
 
