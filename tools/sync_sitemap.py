@@ -23,6 +23,7 @@ Usage:
   python3 tools/sync_sitemap.py --check  # exit 1 if any are wrong
 """
 import re
+import os
 import subprocess
 import sys
 import datetime
@@ -40,11 +41,22 @@ def path_for(loc):
 
 
 def last_commit_date(path):
-    """Date of the last commit touching path, or None if git doesn't know."""
+    """Date of the last commit touching path.
+
+    Returns None only when the file genuinely is not there. A file that
+    exists but has no commits yet is brand new - git knows nothing about
+    it, but "new" means today, not "missing". The first version of this
+    reported a newly added mock test as a sitemap URL with no matching
+    file, which is both wrong and the opposite of the signal we want to
+    send about a page we just published.
+    """
     r = subprocess.run(
         ['git', 'log', '-1', '--format=%ad', '--date=short', '--', path],
         capture_output=True, text=True)
-    return r.stdout.strip() or None
+    committed = r.stdout.strip()
+    if committed:
+        return committed
+    return datetime.date.today().isoformat() if os.path.exists(path) else None
 
 
 def main():

@@ -36,7 +36,9 @@ var TESTS = [
   { id: 'ssc-gd-constable-1',
     url: 'https://www.kosieducationtimes.com/mock/ssc-gd-constable-test.html' },
   { id: 'ssc-gd-full-1',
-    url: 'https://www.kosieducationtimes.com/mock/ssc-gd-full-test-1.html' }
+    url: 'https://www.kosieducationtimes.com/mock/ssc-gd-full-test-1.html' },
+  { id: 'bssc-inter-level-1',
+    url: 'https://www.kosieducationtimes.com/mock/bssc-inter-level-test.html' }
 ];
 
 /* Must match GOOGLE_CLIENT_ID in js/auth.js. Empty disables Google Sign-In
